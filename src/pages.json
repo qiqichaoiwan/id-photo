@@ -1,0 +1,218 @@
+{
+	"easycom": {
+		"^u-(.*)": "uview-ui/components/u-$1/u-$1.vue"
+	},
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "小七快照拍",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black",
+				"backgroundColor": "#f8f9fa"
+			}
+		},
+		{
+			"path": "pages/electronic/index",
+			"style": {
+				"navigationBarTitleText": "我的电子照",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black",
+				"backgroundColor": "#f8f9fa"
+			}
+		},
+		{
+			"path": "pages/mine/index",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black",
+				"backgroundColor": "#f8f9fa"
+			}
+		}
+	],
+	"subPackages": [
+		{
+			"root": "pages/photo",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "选择证件照规格",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				},
+				{
+					"path": "edit",
+					"style": {
+						"navigationBarTitleText": "编辑证件照",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black"
+					}
+				},
+				{
+					"path": "enhanced-edit",
+					"style": {
+						"navigationBarTitleText": "编辑证件照",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/matting",
+			"pages": [
+				{
+					"path": "upload",
+					"style": {
+						"navigationBarTitleText": "人像抠图",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				},
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "人像抠图",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				},
+				{
+					"path": "result",
+					"style": {
+						"navigationBarTitleText": "抠图结果",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/watermark",
+			"pages": [
+				{
+					"path": "upload",
+					"style": {
+						"navigationBarTitleText": "图片加水印",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				},
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "图片加水印",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				},
+				{
+					"path": "result",
+					"style": {
+						"navigationBarTitleText": "水印结果",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/help",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "使用帮助",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/user-agreement",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "用户协议",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/privacy-policy",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "隐私政策",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/history",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "历史记录",
+						"navigationBarBackgroundColor": "#ffffff",
+						"navigationBarTextStyle": "black",
+						"backgroundColor": "#f8f9fa"
+					}
+				}
+			]
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "小七快照拍",
+		"navigationBarBackgroundColor": "#ffffff",
+		"backgroundColor": "#f8f9fa"
+	},
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#F77261",
+		"borderStyle": "white",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"iconPath": "static/tab/home1.png",
+				"selectedIconPath": "static/tab/home_pink.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/electronic/index",
+				"iconPath": "static/tab/electronic1.png",
+				"selectedIconPath": "static/tab/electronic_pink.png",
+				"text": "电子照"
+			},
+			{
+				"pagePath": "pages/mine/index",
+				"iconPath": "static/tab/profile1.png",
+				"selectedIconPath": "static/tab/profile_pink.png",
+				"text": "我的"
+			}
+		]
+	}
+}
