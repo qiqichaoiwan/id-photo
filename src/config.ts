@@ -5,19 +5,19 @@ interface EnvironmentConfig {
 const baseApi: { [key: string]: EnvironmentConfig } = {
   // 开发版
   development: {
-    host: "https://photo.ruize.eu.org",
+    host: "https://your-api",
   },
   // 体验版
   trial: {
-     host: "https://photo.ruize.eu.org",
+     host: "https://your-api",
   },
   // 正式版
   release: {
-     host: "https://photo.ruize.eu.org",
+     host: "https://your-api",
   },
   // uniapp 正式环境
   production: {
-    host: "https://photo.ruize.eu.org",
+    host: "https://your-api",
   },
 };
 
@@ -29,5 +29,6 @@ export const baseUrl = baseApi[env].host;
 // 微信广告配置
 export const adConfig = {
   // 激励视频广告单元ID
-  rewardedVideoAdUnitId: 'adunit-c1929ce9fe7e079a',
+  rewardedVideoAdUnitId: 'adunit-微信激活广告ID',
 };
+
