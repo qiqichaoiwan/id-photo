@@ -147,7 +147,7 @@ src/
 ### 1. 克隆项目
 
 ```bash
-git clone https://gitee.com/nextvue/id-photo.git
+git clone [https://gitee.com/nextvue/id-photo.git](https://github.com/yang199462/id-photo.git)
 cd id-photo
 ```
 
@@ -359,6 +359,7 @@ const colorConfig = [
 
 **如果觉得项目不错，请给个 ⭐ Star 支持一下！**
 
-Made with ❤️ by [小七快照拍](https://gitee.com/nextvue/id-photo.git)
+Made with ❤️ by [小七快照拍]([https://gitee.com/nextvue/id-photo.git](https://github.com/yang199462/id-photo.git))
+
 
 <img src="docs/qrcode/qc.jpg" width="150" align="center" />
