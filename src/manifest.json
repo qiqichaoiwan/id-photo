@@ -1,6 +1,6 @@
 {
     "name" : "id-photos",
-    "appid" : "__UNI__97A831C",
+    "appid" : "",
     "description" : "",
     "versionName" : "1.0.0",
     "versionCode" : "100",
@@ -47,7 +47,7 @@
     "quickapp" : {},
     "mp-weixin" : {
         "usingComponents" : true,
-        "appid" : "wx7db67e2346adbeca",
+        "appid" : "",
         "setting" : {
             "urlCheck" : true,
             "es6" : true,
