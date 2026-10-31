@@ -393,6 +393,8 @@ def refund_event(event):
     event_record(event, order_no, state, '；'.join(parts))
     from miniapp_refund import record_refund_notice
     record_refund_notice(event, order_no)
+    from miniapp_refund_entitlements import enqueue_notice
+    return enqueue_notice(event, order_no)
 
 
 @router.post('/payment/notify')
@@ -436,8 +438,10 @@ async def receive_push(request: Request, background_tasks: BackgroundTasks, time
     if event_type == 'xpay_goods_deliver_notify':
         await asyncio.to_thread(deliver_event, event, order_no)
     elif event_type == 'xpay_refund_notify':
-        # The owner chose manual review for refunds; no entitlement is removed here.
-        await asyncio.to_thread(refund_event, event)
+        check_key = await asyncio.to_thread(refund_event, event)
+        if check_key:
+            from miniapp_refund_entitlements import process_check
+            background_tasks.add_task(process_check, check_key)
     elif event_type == 'xpay_subscribe_ios_refund_query_notify':
         # Reply first: Apple requires a decision within three seconds.
         background_tasks.add_task(event_record, event, order_no, 'refund_inquiry', '按商家规则建议退款，最终决定由 Apple 作出')
@@ -450,9 +454,18 @@ async def receive_push(request: Request, background_tasks: BackgroundTasks, time
 
 
 def reconcile_loop(stop):
-    while not stop.wait(300):
+    next_order_check = time.monotonic() + 300
+    while not stop.wait(60):
         if not os.environ.get('WECHAT_PAY_APP_KEY'):
             continue
+        try:
+            from miniapp_refund_entitlements import process_pending_checks
+            process_pending_checks()
+        except Exception:
+            LOG.warning('退款权益补偿任务暂不可用')
+        if time.monotonic() < next_order_check:
+            continue
+        next_order_check = time.monotonic() + 300
         try:
             with database() as db:
                 rows = db.execute("SELECT order_no FROM orders WHERE product_id != '' AND (status = 'pending' OR (status = 'paid' AND (platform_order_id IS NULL OR notify_needed = 1))) ORDER BY updated_at LIMIT 100").fetchall()

@@ -81,6 +81,19 @@ def initialize():
           detail TEXT NOT NULL DEFAULT '', query_status INTEGER, query_checked_at TEXT NOT NULL DEFAULT '',
           created_at TEXT NOT NULL, updated_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS refund_entitlement_checks (
+          check_key TEXT PRIMARY KEY, order_no TEXT NOT NULL REFERENCES orders(order_no),
+          mch_refund_id TEXT NOT NULL DEFAULT '', wx_refund_id TEXT NOT NULL DEFAULT '',
+          payment_wx_order_id TEXT NOT NULL DEFAULT '', amount_fen INTEGER NOT NULL CHECK (amount_fen > 0),
+          source TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'pending'
+            CHECK (state IN ('pending', 'partial', 'revoked', 'manual_review', 'cancelled')),
+          detail TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS membership_refund_revocations (
+          order_no TEXT PRIMARY KEY REFERENCES orders(order_no), subject TEXT NOT NULL,
+          check_key TEXT NOT NULL REFERENCES refund_entitlement_checks(check_key),
+          previous_expires_at TEXT NOT NULL, new_expires_at TEXT NOT NULL, created_at TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS admin_audit (
           id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, target TEXT NOT NULL,
           details TEXT NOT NULL, created_at TEXT NOT NULL
@@ -111,6 +124,8 @@ def initialize():
         db.execute('CREATE INDEX IF NOT EXISTS refund_requests_created ON refund_requests(created_at)')
         db.execute("CREATE UNIQUE INDEX IF NOT EXISTS refund_transactions_one_open ON refund_transactions(order_no) WHERE state NOT IN ('confirmed', 'not_refunded')")
         db.execute('CREATE INDEX IF NOT EXISTS refund_transactions_order ON refund_transactions(order_no, created_at)')
+        db.execute('CREATE INDEX IF NOT EXISTS refund_entitlement_checks_pending ON refund_entitlement_checks(state, updated_at)')
+        db.execute('CREATE INDEX IF NOT EXISTS membership_refund_revocations_subject ON membership_refund_revocations(subject)')
         db.execute('CREATE INDEX IF NOT EXISTS adjustments_subject_created ON member_adjustments(subject, created_at)')
         db.execute("BEGIN IMMEDIATE")
         if not db.execute("SELECT 1 FROM settings WHERE key = 'catalog_initialized'").fetchone():

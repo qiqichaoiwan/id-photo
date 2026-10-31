@@ -489,8 +489,14 @@ def order_detail(order_no: str):
         refunds = db.execute('''SELECT refund_id,order_no,amount_fen,left_fee_before,reason_code,note,state,
             wx_refund_id,platform_code,detail,query_status,query_checked_at,created_at,updated_at FROM refund_transactions
             WHERE order_no=? ORDER BY created_at DESC LIMIT 100''', (order_no,)).fetchall()
+        entitlement_checks = db.execute('''SELECT amount_fen,state,detail,created_at,updated_at FROM refund_entitlement_checks
+            WHERE order_no=? ORDER BY created_at DESC LIMIT 100''', (order_no,)).fetchall()
+        revocation = db.execute('''SELECT previous_expires_at,new_expires_at,created_at
+            FROM membership_refund_revocations WHERE order_no=?''', (order_no,)).fetchone()
     return {'order': dict(order), 'grant': dict(grant) if grant else None,
-            'events': [dict(row) for row in events], 'refunds': [dict(row) for row in refunds]}
+            'events': [dict(row) for row in events], 'refunds': [dict(row) for row in refunds],
+            'entitlement_checks': [dict(row) for row in entitlement_checks],
+            'revocation': dict(revocation) if revocation else None}
 
 
 @app.get('/api/orders/{order_no}/refund-quote', dependencies=[Depends(require_admin)])

@@ -44,7 +44,7 @@ class FakeResponse:
 class DirectRefundTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         with membership.database() as db:
-            for table in ('refund_transactions', 'refund_requests', 'payment_events', 'membership_grants', 'orders', 'members', 'admin_audit', 'identity_aliases', 'identity_users'):
+            for table in ('membership_refund_revocations', 'refund_entitlement_checks', 'refund_transactions', 'refund_requests', 'payment_events', 'membership_grants', 'orders', 'members', 'admin_audit', 'identity_aliases', 'identity_users'):
                 db.execute('DELETE FROM ' + table)
         self.subject = bind_identity('buyer-openid', subject_for_openid('buyer-openid'))
         self.order_no = 'M' + '1' * 30

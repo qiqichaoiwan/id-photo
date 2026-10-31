@@ -175,6 +175,8 @@ def start_refund(order_no, data):
                 VALUES (?,?,?,?,?,?,?,?, 'dispatching',?,?)''',
                 (refund_id, order_no, data.request_key, data.amount_fen, data.expected_left_fen,
                  data.reason_code, data.note, quote['wx_order_id'], created, created))
+            from miniapp_refund_entitlements import enqueue_check
+            enqueue_check(db, order_no, refund_id, '', data.amount_fen, quote['wx_order_id'])
             db.execute('INSERT INTO admin_audit(action,target,details,created_at) VALUES (?,?,?,?)',
                        ('start_refund', order_no, f'退款单 {refund_id}；金额 {data.amount_fen} 分；原因：{data.note}', created))
             subject = order['subject']
@@ -322,6 +324,10 @@ def review_refund(refund_id, data):
         detail = ('管理员核实退款完成：' if data.outcome == 'confirmed' else '管理员核实未退款：') + data.note
         db.execute('UPDATE refund_transactions SET state=?,detail=?,updated_at=? WHERE refund_id=?',
                    (data.outcome, detail, now_iso(), refund_id))
+        if data.outcome == 'not_refunded':
+            db.execute("UPDATE refund_entitlement_checks SET state='cancelled',detail=?,updated_at=? "
+                       "WHERE order_no=? AND mch_refund_id=? AND state='pending'",
+                       ('管理员核实未退款；如收到有效退款通知将重新核对', now_iso(), row['order_no'], refund_id))
         db.execute('INSERT INTO admin_audit(action,target,details,created_at) VALUES (?,?,?,?)',
                    ('review_refund', row['order_no'], f'退款单 {refund_id}；{detail}', now_iso()))
         if data.outcome == 'confirmed':
