@@ -71,6 +71,16 @@ def initialize():
           created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
           CHECK (status IN ('submitted', 'processing', 'closed'))
         );
+        CREATE TABLE IF NOT EXISTS refund_transactions (
+          refund_id TEXT PRIMARY KEY, order_no TEXT NOT NULL REFERENCES orders(order_no),
+          request_key TEXT NOT NULL UNIQUE, amount_fen INTEGER NOT NULL CHECK (amount_fen > 0),
+          left_fee_before INTEGER NOT NULL CHECK (left_fee_before >= amount_fen),
+          reason_code TEXT NOT NULL, note TEXT NOT NULL, pay_wx_order_id TEXT NOT NULL,
+          state TEXT NOT NULL CHECK (state IN ('dispatching', 'accepted', 'unknown', 'notice_success', 'notice_failed', 'confirmed', 'not_refunded')),
+          wx_refund_id TEXT NOT NULL DEFAULT '', platform_code INTEGER,
+          detail TEXT NOT NULL DEFAULT '', query_status INTEGER, query_checked_at TEXT NOT NULL DEFAULT '',
+          created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS admin_audit (
           id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, target TEXT NOT NULL,
           details TEXT NOT NULL, created_at TEXT NOT NULL
@@ -90,11 +100,17 @@ def initialize():
         ):
             if column not in columns:
                 db.execute(f'ALTER TABLE orders ADD COLUMN {column} {declaration}')
+        refund_columns = {row['name'] for row in db.execute('PRAGMA table_info(refund_transactions)').fetchall()}
+        for column, declaration in (('query_status', 'INTEGER'), ('query_checked_at', "TEXT NOT NULL DEFAULT ''")):
+            if column not in refund_columns:
+                db.execute(f'ALTER TABLE refund_transactions ADD COLUMN {column} {declaration}')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS orders_platform_id ON orders(platform_order_id) WHERE platform_order_id IS NOT NULL')
         db.execute('CREATE INDEX IF NOT EXISTS orders_pending ON orders(status, updated_at)')
         db.execute('CREATE INDEX IF NOT EXISTS orders_subject_created ON orders(subject, created_at)')
         db.execute("CREATE UNIQUE INDEX IF NOT EXISTS refund_requests_open_order ON refund_requests(order_no) WHERE status IN ('submitted', 'processing')")
         db.execute('CREATE INDEX IF NOT EXISTS refund_requests_created ON refund_requests(created_at)')
+        db.execute("CREATE UNIQUE INDEX IF NOT EXISTS refund_transactions_one_open ON refund_transactions(order_no) WHERE state NOT IN ('confirmed', 'not_refunded')")
+        db.execute('CREATE INDEX IF NOT EXISTS refund_transactions_order ON refund_transactions(order_no, created_at)')
         db.execute('CREATE INDEX IF NOT EXISTS adjustments_subject_created ON member_adjustments(subject, created_at)')
         db.execute("BEGIN IMMEDIATE")
         if not db.execute("SELECT 1 FROM settings WHERE key = 'catalog_initialized'").fetchone():

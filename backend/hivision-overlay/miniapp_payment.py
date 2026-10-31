@@ -391,6 +391,8 @@ def refund_event(event):
         if isinstance(value, (str, int)) and str(value):
             parts.append(f'{label}: {str(value)[:80]}')
     event_record(event, order_no, state, '；'.join(parts))
+    from miniapp_refund import record_refund_notice
+    record_refund_notice(event, order_no)
 
 
 @router.post('/payment/notify')
@@ -416,7 +418,7 @@ async def receive_push(request: Request, background_tasks: BackgroundTasks, time
     event = decrypt_message(encrypted)
     event_type = event.get('Event')
     order_no = str(event.get('OutTradeNo') or event.get('pay_order_id') or '')[:128]
-    if event_type == 'xpay_goods_deliver_notify' and str(event.get('Env')) == '1' and payment_env() == 0:
+    if event_type in ('xpay_goods_deliver_notify', 'xpay_refund_notify') and str(event.get('Env')) == '1' and payment_env() == 0:
         # The platform has one push URL. Forward signed sandbox envelopes only
         # to the loopback sandbox service, which verifies them again and uses a
         # separate database. No sandbox grant can affect production members.

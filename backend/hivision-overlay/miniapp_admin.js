@@ -17,8 +17,11 @@ const viewInfo = {
 };
 const labels = {ok:'正常', degraded:'受影响', unavailable:'不可用', unknown:'待确认', disabled:'未开放', active:'生效中', expired:'已到期', none:'未开通', pending:'确认中', paid:'已发放', closed:'已关闭', draft:'草稿', archived:'已归档', manual_review:'待人工核对', refund_failed:'退款失败', unhandled:'待处理', resolved:'已处理'};
 const routeNames = {'/idphoto':'证件照制作','/idphoto_crop':'证件照裁剪','/human_matting':'人像抠图','/convert_image':'格式转换','/add_background':'证件照换底','/generate_layout_photos':'照片排版','/watermark':'图片水印','/set_kb':'图片压缩','/auth/wechat':'微信登录','/membership/status':'会员状态','/membership/plans':'会员套餐'};
-const actionNames = {create_plan:'创建套餐',edit_plan:'编辑套餐',activate_plan:'上架套餐',adjust_member:'调整会员',resolve_refund:'核对事件',update_refund_request:'处理退款申请',acknowledge_event:'核查事件',refresh_order:'微信查单',update_settings:'修改设置'};
+const actionNames = {create_plan:'创建套餐',edit_plan:'编辑套餐',activate_plan:'上架套餐',adjust_member:'调整会员',resolve_refund:'核对事件',update_refund_request:'处理退款申请',acknowledge_event:'核查事件',start_refund:'发起退款',review_refund:'核对退款',refresh_refund:'查询退款单',refresh_order:'微信查单',update_settings:'修改设置'};
 const refundLabels = {submitted:'待处理', processing:'处理中', closed:'已处理'};
+const refundStates = {dispatching:'提交中', accepted:'微信已受理', unknown:'结果待核对', notice_success:'微信通知成功 · 待核对', notice_failed:'微信通知失败 · 待核对', confirmed:'已人工核实退款', not_refunded:'已核实未退款'};
+const refundReviewable = ['dispatching','accepted','unknown','notice_success','notice_failed'];
+const wechatRefundStatus = {0:'初始化',1:'创建成功',2:'已支付待发货',3:'发货中',4:'已发货',5:'已经退款',6:'已关闭',7:'退款失败',8:'用户退款完成',9:'回收广告金完成',10:'分账回退完成'};
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const badge = value => `<span class="badge ${escapeHtml(value)}">${escapeHtml(labels[value] || value || '未知')}</span>`;
 const serviceBadge = item => item?.id === 'payment' && item.state === 'unknown'
@@ -141,8 +144,12 @@ $('order-filter').addEventListener('reset', () => { state.page.orders=1; setTime
 async function showOrder(number) {
   const data = await api('/api/orders/'+encodeURIComponent(number)), o = data.order;
   const events = data.events.map(e => `<div class="history-item"><strong>${escapeHtml(e.event_type)} · ${escapeHtml(labels[e.state] || e.state)}</strong><br>${escapeHtml(dateTime(e.created_at))} · ${escapeHtml(e.details || '无补充说明')}</div>`).join('') || '<p class="muted">暂无支付事件</p>';
-  openModal('订单详情','订单金额为本地快照，实际结算以微信账单为准。',`<div class="modal-content"><div class="detail-grid"><div><small>订单号</small><strong class="mono">${escapeHtml(o.order_no)}</strong></div><div><small>用户编号</small><strong class="mono">${escapeHtml(o.user_ref)}</strong></div><div><small>套餐</small><strong>${escapeHtml(o.plan_name)} · ${o.months} 个月</strong></div><div><small>金额 / 状态</small><strong>${money(o.price_fen)} · ${escapeHtml(labels[o.status] || o.status)}</strong></div><div><small>微信商品 ID</small><strong>${escapeHtml(o.product_id || '未关联')}</strong></div><div><small>微信订单号</small><strong class="mono">${escapeHtml(o.platform_order_id || '未记录')}</strong></div><div><small>创建时间</small><strong>${escapeHtml(dateTime(o.created_at))}</strong></div><div><small>权益到期时间</small><strong>${escapeHtml(dateTime(o.expires_at))}</strong></div></div><section class="modal-section"><h3>权益发放</h3><p class="muted">${data.grant ? escapeHtml(dateTime(data.grant.start_at)) + ' 至 ' + escapeHtml(dateTime(data.grant.expires_at)) : '暂无权益发放记录'}</p></section><section class="modal-section"><h3>关联支付事件</h3>${events}</section><p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button id="order-user" class="button secondary">查看该用户</button><button id="query-order" class="button secondary" ${o.product_id ? '' : 'disabled'}>向微信查单</button><button id="close-order" class="button primary">完成</button></div></div>`);
+  const refunds = (data.refunds || []).map(r => `<div class="history-item"><strong>${escapeHtml(refundStates[r.state] || r.state)} · ${money(r.amount_fen)}</strong><br>退款单：<span class="mono">${escapeHtml(r.refund_id)}</span>${r.wx_refund_id ? '<br>微信退款号：<span class="mono">' + escapeHtml(r.wx_refund_id) + '</span>' : ''}<br>${escapeHtml(r.detail || '正在提交')} · ${escapeHtml(dateTime(r.updated_at))}${r.query_status !== null && r.query_status !== undefined ? '<br>微信退款单状态：' + escapeHtml(wechatRefundStatus[r.query_status] || String(r.query_status)) + ' · ' + escapeHtml(dateTime(r.query_checked_at)) : ''}${refundReviewable.includes(r.state) ? `<br><button class="text-button" data-refund-refresh="${escapeHtml(r.refund_id)}">向微信查退款单</button>　<button class="text-button" data-refund-review="${escapeHtml(r.refund_id)}">登记核对结果 →</button>` : ''}</div>`).join('') || '<p class="muted">暂无后台发起的退款</p>';
+  openModal('订单详情','订单金额为本地快照，实际结算以微信账单为准。',`<div class="modal-content"><div class="detail-grid"><div><small>订单号</small><strong class="mono">${escapeHtml(o.order_no)}</strong></div><div><small>用户编号</small><strong class="mono">${escapeHtml(o.user_ref)}</strong></div><div><small>套餐</small><strong>${escapeHtml(o.plan_name)} · ${o.months} 个月</strong></div><div><small>金额 / 状态</small><strong>${money(o.price_fen)} · ${escapeHtml(labels[o.status] || o.status)}</strong></div><div><small>微信商品 ID</small><strong>${escapeHtml(o.product_id || '未关联')}</strong></div><div><small>微信订单号</small><strong class="mono">${escapeHtml(o.platform_order_id || '未记录')}</strong></div><div><small>创建时间</small><strong>${escapeHtml(dateTime(o.created_at))}</strong></div><div><small>权益到期时间</small><strong>${escapeHtml(dateTime(o.expires_at))}</strong></div></div><section class="modal-section"><h3>权益发放</h3><p class="muted">${data.grant ? escapeHtml(dateTime(data.grant.start_at)) + ' 至 ' + escapeHtml(dateTime(data.grant.expires_at)) : '暂无权益发放记录'}</p></section><section class="modal-section"><h3>后台退款记录</h3>${refunds}</section><section class="modal-section"><h3>关联支付事件</h3>${events}</section><p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button id="prepare-refund" class="button danger" ${o.status === 'paid' && o.product_id ? '' : 'disabled'}>申请退款</button><button id="order-user" class="button secondary">查看该用户</button><button id="query-order" class="button secondary" ${o.product_id ? '' : 'disabled'}>向微信查单</button><button id="close-order" class="button primary">完成</button></div></div>`);
   $('close-order').onclick = () => $('modal').close();
+  $('prepare-refund').onclick = async () => { const button = $('prepare-refund'); button.disabled = true; try { await showRefundForm(number); } catch(error) { modalError(error); button.disabled = false; } };
+  $('modal-body').querySelectorAll('[data-refund-review]').forEach(button => button.onclick = () => showRefundReview((data.refunds || []).find(item => item.refund_id === button.dataset.refundReview)));
+  $('modal-body').querySelectorAll('[data-refund-refresh]').forEach(button => button.onclick = async () => { button.disabled = true; try { await api('/api/refunds/' + encodeURIComponent(button.dataset.refundRefresh) + '/refresh', {method:'POST'}); await showOrder(number); } catch(error) { modalError(error); button.disabled = false; } });
   $('order-user').onclick = async () => {
     const button = $('order-user');
     button.disabled = true;
@@ -150,6 +157,52 @@ async function showOrder(number) {
     catch(error) { modalError(error); button.disabled = false; }
   };
   $('query-order').onclick = async () => { if (!confirm('将向微信查询订单并按现有规则核验及补发权益，是否继续？')) return; $('query-order').disabled = true; try { await api('/api/orders/'+encodeURIComponent(number)+'/refresh',{method:'POST'}); toast('已完成查单'); await showOrder(number); await loadOrders(); } catch(error) { modalError(error); $('query-order').disabled = false; } };
+}
+async function showRefundForm(number) {
+  const quote = await api('/api/orders/' + encodeURIComponent(number) + '/refund-quote');
+  if (!quote.eligible) {
+    const apple = quote.channel === 'ios' ? '<p class="footnote">请让用户在 App Store 的购买记录中申请，或访问 Apple 的问题报告页面。退款结果由 Apple 决定。</p>' : '';
+    openModal('核对退款', '微信订单核对结果', `<div class="modal-content"><p>${escapeHtml(quote.message || '当前无法发起退款')}</p>${apple}<p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button id="refund-back" class="button secondary">返回订单</button></div></div>`);
+    $('refund-back').onclick = () => run(() => showOrder(number));
+    return;
+  }
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  const requestKey = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  openModal('申请微信退款', '请核对订单、金额和原因。微信受理不代表退款完成。', `<div class="modal-content"><div class="detail-grid"><div><small>订单号</small><strong class="mono">${escapeHtml(number)}</strong></div><div><small>原支付金额</small><strong>${money(quote.paid_fen)}</strong></div><div><small>微信当前可退</small><strong>${money(quote.left_fee)}</strong></div><div><small>渠道</small><strong>普通虚拟支付</strong></div></div><p class="footnote">提交后请在退款记录中核对结果；会员到期时间不会自动改变。若结果不明，先去微信后台核对，避免重复退款。</p><form id="direct-refund-form"><div class="form-grid"><label>退款金额（元）<input id="direct-refund-amount" inputmode="decimal" value="${(quote.left_fee / 100).toFixed(2)}" required></label><label>退款原因<select id="direct-refund-reason"><option value="3">用户主动退款</option><option value="1">产品问题</option><option value="2">售后问题</option><option value="4">价格问题</option><option value="5">其他原因</option></select></label><label class="full">内部说明<input id="direct-refund-note" minlength="2" maxlength="200" placeholder="例如：客服工单编号及核对情况" required></label></div><p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button type="button" id="refund-back" class="button secondary">返回订单</button><button type="submit" id="refund-submit" class="button danger">确认发起退款</button></div></form></div>`);
+  $('refund-back').onclick = () => run(() => showOrder(number));
+  $('direct-refund-form').onsubmit = async event => {
+    event.preventDefault();
+    const value = $('direct-refund-amount').value.trim(), note = $('direct-refund-note').value.trim();
+    if (!/^\d{1,6}(\.\d{1,2})?$/.test(value) || note.length < 2) { modalError(Error('请输入有效退款金额和内部说明')); return; }
+    const [whole, decimal=''] = value.split('.');
+    const amount = Number(whole) * 100 + Number(decimal.padEnd(2, '0'));
+    if (amount <= 0 || amount > quote.left_fee) { modalError(Error('退款金额须大于零且不超过当前可退金额')); return; }
+    if (!confirm(`确认对订单 ${number} 发起 ${money(amount)} 的真实退款？请确认订单和金额。`)) return;
+    const button = $('refund-submit'); button.disabled = true;
+    try {
+      const result = await api('/api/orders/' + encodeURIComponent(number) + '/refund', {method:'POST',body:JSON.stringify({request_key:requestKey,amount_fen:amount,expected_left_fen:quote.left_fee,reason_code:$('direct-refund-reason').value,note})});
+      toast(refundStates[result.state] || '退款请求已记录');
+      await showOrder(number);
+      await loadOrdersPage();
+    } catch(error) {
+      modalError(Error((error.message || '请求失败') + '。请返回订单查看退款记录并重新核对，避免重复提交。'));
+    }
+  };
+}
+function showRefundReview(refund) {
+  if (!refund) return;
+  openModal('登记退款核对结果', '请先在微信公众平台核实这笔退款单的最终结果。', `<div class="modal-content"><p>订单：<span class="mono">${escapeHtml(refund.order_no)}</span><br>退款单：<span class="mono">${escapeHtml(refund.refund_id)}</span><br>金额：${money(refund.amount_fen)}<br>当前状态：${escapeHtml(refundStates[refund.state] || refund.state)}</p><p class="footnote">此处只登记你在微信平台核实的结果，不会发起或撤销退款，也不会自动调整会员。核实未退款后才可重新发起；结果不明时请保持待核对。</p><form id="direct-review-form"><label>微信平台最终结果<select id="direct-review-outcome"><option value="">请选择</option><option value="confirmed">已确认退款完成</option><option value="not_refunded">已确认未退款</option></select></label><label>核对记录<textarea id="direct-review-note" minlength="2" maxlength="200" required placeholder="记录微信平台状态及核对依据"></textarea></label><p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button type="button" id="direct-review-back" class="button secondary">返回订单</button><button type="submit" id="direct-review-submit" class="button primary">保存核对结果</button></div></form></div>`);
+  $('direct-review-back').onclick = () => run(() => showOrder(refund.order_no));
+  $('direct-review-form').onsubmit = async event => {
+    event.preventDefault();
+    const outcome = $('direct-review-outcome').value, note = $('direct-review-note').value.trim();
+    if (!outcome || note.length < 2) { modalError(Error('请选择平台最终结果并填写核对记录')); return; }
+    if (!confirm(outcome === 'not_refunded' ? '确认已在微信平台核实此退款未发生？登记后可重新发起退款。' : '确认已在微信平台核实此退款完成？会员权益仍需人工处理。')) return;
+    const button = $('direct-review-submit'); button.disabled = true;
+    try { await api('/api/refunds/' + encodeURIComponent(refund.refund_id) + '/review',{method:'POST',body:JSON.stringify({outcome,note})}); toast('退款核对结果已保存'); await showOrder(refund.order_no); await loadOrdersPage(); }
+    catch(error) { modalError(error); button.disabled = false; }
+  };
 }
 async function loadEvents() {
   const data = await api('/api/review-events?' + params({page:state.page.events,page_size:state.settings.page_size,state:$('event-state').value}));
@@ -166,7 +219,8 @@ async function loadRefundRequests() {
   paginate('refund-pagination','refunds',data,loadRefundRequests);
 }
 function reviewRefundRequest(request) {
-  openModal('处理用户退款申请', '请先核实支付渠道并在对应平台处理；此处只记录进度，不会发起退款或改变会员。', `<div class="modal-content"><p>订单：<span class="mono">${escapeHtml(request.order_no)}</span><br>用户原因：${escapeHtml(request.reason)}</p><p class="footnote">所有渠道都可在小程序内提交申请。Apple 内购请协助用户核实并说明 Apple 退款方式，退款结果由 Apple 决定；其他渠道请在微信后台核实处理，并按平台规则原路退款。退款完成后的会员权益按支付事件人工核对。</p><form id="refund-form"><div class="form-grid"><label class="full">申请状态<select id="refund-update-status"><option value="processing">处理中</option><option value="closed">已处理</option></select></label><label class="full">给用户的处理说明（结束申请时必填）<textarea id="refund-response" maxlength="200">${escapeHtml(request.response || '')}</textarea></label><label class="full">内部处理记录（不会显示给用户）<textarea id="refund-note" minlength="2" maxlength="200" required></textarea></label></div><p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button type="submit" class="button primary">保存处理记录</button></div></form></div>`);
+  openModal('处理用户退款申请', '可查看订单并核对退款；下方表单只记录申请进度。', `<div class="modal-content"><p>订单：<span class="mono">${escapeHtml(request.order_no)}</span><br>用户原因：${escapeHtml(request.reason)}</p><p class="footnote">所有渠道都可在小程序内提交申请。Apple 内购请协助用户核实并说明 Apple 退款方式，退款结果由 Apple 决定；普通虚拟支付可进入订单详情核对并申请退款。退款完成后的会员权益按支付事件人工核对。</p><form id="refund-form"><div class="form-grid"><label class="full">申请状态<select id="refund-update-status"><option value="processing">处理中</option><option value="closed">已处理</option></select></label><label class="full">给用户的处理说明（结束申请时必填）<textarea id="refund-response" maxlength="200">${escapeHtml(request.response || '')}</textarea></label><label class="full">内部处理记录（不会显示给用户）<textarea id="refund-note" minlength="2" maxlength="200" required></textarea></label></div><p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button type="button" id="refund-view-order" class="button secondary">查看订单并申请退款</button><button type="submit" class="button primary">保存处理记录</button></div></form></div>`);
+  $('refund-view-order').onclick = () => run(() => showOrder(request.order_no));
   $('refund-form').onsubmit = async e => { e.preventDefault(); const body = {status:$('refund-update-status').value,response:$('refund-response').value.trim(),note:$('refund-note').value.trim()}; if (body.status === 'closed' && body.response.length < 2) { modalError(Error('结束申请时请填写给用户的处理说明')); return; } try { await api('/api/refund-requests/'+request.id+'/update',{method:'POST',body:JSON.stringify(body)}); $('modal').close(); toast('处理记录已保存'); await loadOrdersPage(); } catch(error) { modalError(error); } };
 }
 $('event-state').onchange = () => { state.page.events=1; run(loadEvents); };

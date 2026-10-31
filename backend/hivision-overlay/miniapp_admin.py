@@ -23,6 +23,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import PlainTextResponse
 
 from miniapp_membership import DATA_DIR, USER_CTE, database, initialize, resolve_user_ref
+from miniapp_refund import RefundInput, RefundReviewInput, refund_quote, refresh_refund, review_refund, start_refund
 from miniapp_telemetry import read_metrics
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -485,7 +486,31 @@ def order_detail(order_no: str):
             raise HTTPException(404, '订单不存在')
         grant = db.execute('SELECT start_at, expires_at, created_at FROM membership_grants WHERE order_no=?', (order_no,)).fetchone()
         events = db.execute('SELECT event_type, state, created_at, details FROM payment_events WHERE order_no=? ORDER BY created_at DESC LIMIT 100', (order_no,)).fetchall()
-    return {'order': dict(order), 'grant': dict(grant) if grant else None, 'events': [dict(row) for row in events]}
+        refunds = db.execute('''SELECT refund_id,order_no,amount_fen,left_fee_before,reason_code,note,state,
+            wx_refund_id,platform_code,detail,query_status,query_checked_at,created_at,updated_at FROM refund_transactions
+            WHERE order_no=? ORDER BY created_at DESC LIMIT 100''', (order_no,)).fetchall()
+    return {'order': dict(order), 'grant': dict(grant) if grant else None,
+            'events': [dict(row) for row in events], 'refunds': [dict(row) for row in refunds]}
+
+
+@app.get('/api/orders/{order_no}/refund-quote', dependencies=[Depends(require_admin)])
+def admin_refund_quote(order_no: str):
+    return refund_quote(order_no)
+
+
+@app.post('/api/orders/{order_no}/refund', dependencies=[Depends(require_admin)])
+def admin_start_refund(order_no: str, data: RefundInput):
+    return start_refund(order_no, data)
+
+
+@app.post('/api/refunds/{refund_id}/review', dependencies=[Depends(require_admin)])
+def admin_review_refund(refund_id: str, data: RefundReviewInput):
+    return review_refund(refund_id, data)
+
+
+@app.post('/api/refunds/{refund_id}/refresh', dependencies=[Depends(require_admin)])
+def admin_refresh_refund(refund_id: str):
+    return refresh_refund(refund_id)
 
 
 @app.get('/api/audit', dependencies=[Depends(require_admin)])
