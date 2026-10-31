@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field, validator
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import PlainTextResponse
 
-from miniapp_membership import DATA_DIR, database, initialize
+from miniapp_membership import DATA_DIR, USER_CTE, database, initialize, resolve_user_ref
 from miniapp_telemetry import read_metrics
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -322,17 +322,8 @@ def metrics(days: int = Query(7, ge=1, le=30)):
     return read_metrics(days)
 
 
-USER_CTE = '''WITH subjects AS (SELECT user_id AS subject FROM identity_users
-    UNION SELECT subject FROM members UNION SELECT subject FROM orders)'''
-
-
 def resolve_user(db, user_ref):
-    if not re.fullmatch(r'[a-f0-9]{16}', user_ref):
-        raise HTTPException(400, '用户编号无效')
-    matches = db.execute(USER_CTE + ' SELECT subject FROM subjects WHERE substr(subject, 1, 16) = ? LIMIT 2', (user_ref,)).fetchall()
-    if len(matches) != 1:
-        raise HTTPException(409 if matches else 404, '用户编号不唯一' if matches else '用户不存在')
-    return matches[0]['subject']
+    return resolve_user_ref(db, user_ref)
 
 
 @app.get('/api/users', dependencies=[Depends(require_admin)])

@@ -7,6 +7,10 @@ export interface MembershipStatus {
   expires_at: string | null;
 }
 
+export interface MembershipProfile {
+  user_ref: string;
+}
+
 export interface MembershipPlan {
   id: number;
   name: string;
@@ -36,6 +40,7 @@ export interface RefundRequest {
 }
 
 export const getMembershipStatus = (): Promise<MembershipStatus> => request('/membership/status', { method: Method.GET, timeout: 8000 });
+export const getMembershipProfile = (): Promise<MembershipProfile> => request('/membership/profile', { method: Method.GET, timeout: 8000 });
 export const getMembershipPlans = (): Promise<MembershipPlan[]> => request('/membership/plans', { method: Method.GET, timeout: 8000 });
 export const getMembershipOrders = (): Promise<MembershipOrder[]> => request('/membership/orders', { method: Method.GET, timeout: 8000 });
 export const getMembershipOrder = (orderNo: string): Promise<MembershipOrder> =>

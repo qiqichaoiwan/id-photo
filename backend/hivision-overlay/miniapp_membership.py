@@ -1,11 +1,12 @@
 """Membership catalog, entitlements and customer refund requests."""
 import os
+import re
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field, validator
 
 DATA_DIR = Path(os.environ.get('IDPHOTO_DATA_DIR', Path(__file__).resolve().parent / '.miniapp_data'))
@@ -113,6 +114,23 @@ def subject_for(request: Request) -> str:
     return resolve_subject(subject)
 
 
+USER_CTE = '''WITH subjects AS (SELECT user_id AS subject FROM identity_users
+    UNION SELECT subject FROM members UNION SELECT subject FROM orders)'''
+
+
+def resolve_user_ref(db, user_ref: str) -> str:
+    """Resolve a public user reference only when it identifies exactly one subject."""
+    if not re.fullmatch(r'[a-f0-9]{16}', user_ref):
+        raise HTTPException(400, '用户编号无效')
+    matches = db.execute(
+        USER_CTE + ' SELECT subject FROM subjects WHERE substr(subject, 1, 16) = ? LIMIT 2',
+        (user_ref,),
+    ).fetchall()
+    if len(matches) != 1:
+        raise HTTPException(409 if matches else 404, '用户编号不唯一' if matches else '用户不存在')
+    return matches[0]['subject']
+
+
 def public_plan(row):
     result = {key: row[key] for key in ('id', 'name', 'months', 'price_fen', 'description', 'status')}
     from miniapp_payment import payment_enabled
@@ -122,6 +140,25 @@ def public_plan(row):
 
 
 router = APIRouter(prefix='/membership')
+
+
+@router.get('/profile')
+def profile(request: Request, response: Response):
+    """Return only the authenticated user's reference, without exposing their OpenID."""
+    subject = subject_for(request)
+    with database() as db:
+        if not db.execute('SELECT 1 FROM identity_users WHERE user_id = ?', (subject,)).fetchone():
+            # An older token may predate identity mapping; the client can log in again.
+            raise HTTPException(401, '请重新登录后查看会员编号')
+        user_ref = subject[:16]
+        try:
+            resolved = resolve_user_ref(db, user_ref)
+        except HTTPException:
+            raise HTTPException(503, '会员编号暂不可用，请稍后重试')
+        if resolved != subject:
+            raise HTTPException(503, '会员编号暂不可用，请稍后重试')
+    response.headers['Cache-Control'] = 'private, no-store'
+    return {'user_ref': user_ref}
 
 
 @router.get('/plans')
