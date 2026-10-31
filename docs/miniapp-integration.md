@@ -42,6 +42,29 @@ curl https://photo.ruize.eu.org/health
 
 限流使用单进程内存，适合当前单进程部署；多进程或多机器部署需要共享限流存储。`IDPHOTO_TRUST_CLOUDFLARE=true` 仅适用于服务只接受可信的本机 Cloudflare Tunnel 转发时；直接暴露或使用其他代理时应调整配置，避免信任伪造的来源地址。图片单张最多 20MB，支持 JPG、PNG、WebP，最大 2000 万像素且单边不超过 8192 像素。
 
+## 一键恢复
+
+仓库中的 `scripts/recover_xiaoqi_photo.sh` 会先校验后端配置和 Cloudflare ingress，再按顺序重启图片 API、支付推送、会员后台、可选沙箱以及两个照片 Tunnel，最后检查本机和公网健康入口。它不会修改密钥、会员数据库或 Tunnel 配置。当前设备已安装快捷命令：
+
+```sh
+recover-xiaoqi-photo
+```
+
+也可以先只检查、不重启：
+
+```sh
+recover-xiaoqi-photo --check
+```
+
+如果命令不存在，从仓库根目录执行：
+
+```sh
+cp scripts/recover_xiaoqi_photo.sh "$HOME/bin/recover-xiaoqi-photo"
+chmod 755 "$HOME/bin/recover-xiaoqi-photo"
+```
+
+恢复脚本默认使用 `/Users/qiqi/HivisionIDPhotos` 和 `~/.cloudflared/config.yml`；迁移设备时可通过 `IDPHOTO_ROOT` 和 `CLOUDFLARED_CONFIG` 覆盖。脚本返回非零状态表示有检查未通过，应查看终端输出和 `/tmp/hivision-api*.log`、`/tmp/idphoto-payment-*.log`、`/tmp/idphoto-membership-admin*.log` 以及 `~/.cloudflared/*.log`。
+
 ## 验收清单
 
 1. 在开发工具或真机选取一张有且只有一张清晰正脸的照片，生成标准照和高清照。

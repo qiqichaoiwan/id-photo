@@ -40,6 +40,17 @@ cd backend
 
 启动脚本会自动把 `hivision-core` 和 `hivision-overlay` 放入 `PYTHONPATH`，不依赖当前工作目录。
 
+## 一键恢复
+
+仓库根目录的 `scripts/recover_xiaoqi_photo.sh` 用于当前 Mac 的故障恢复。它会先校验后端配置和 Tunnel ingress，再重启图片 API、支付推送、会员后台、可选沙箱和两个照片 Cloudflare Tunnel，最后检查本机与公网健康入口。脚本不改写密钥、会员数据库或 Tunnel 配置：
+
+```sh
+./scripts/recover_xiaoqi_photo.sh
+./scripts/recover_xiaoqi_photo.sh --check  # 只检查，不重启
+```
+
+当前设备也安装了 `recover-xiaoqi-photo` 命令和桌面快捷方式。默认后端目录是 `/Users/qiqi/HivisionIDPhotos`；迁移到其他设备时可用 `IDPHOTO_ROOT`、`CLOUDFLARED_CONFIG` 覆盖路径。
+
 ## 后台公网访问
 
 当前地址为 [https://idphoto-admin.ruize.eu.org/](https://idphoto-admin.ruize.eu.org/)。Cloudflare Access 要求已授权的管理员邮箱验证，后台还要求输入 `admin` 和本机设置的密码；Access 会话有效期为 6 小时。管理后台、Cloudflare Tunnel、网络和这台 Mac 均需正常运行。
