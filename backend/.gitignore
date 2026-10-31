@@ -1,0 +1,12 @@
+.venv/
+.runtime/
+**/__pycache__/
+*.pyc
+.miniapp_data/
+.miniapp_sandbox/
+.env.miniapp
+.env.miniapp.payment
+.env.miniapp.sandbox
+.env.miniapp.admin
+hivision-core/hivision/creator/weights/*.onnx
+hivision-core/hivision/creator/retinaface/weights/*.onnx

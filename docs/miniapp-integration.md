@@ -20,17 +20,19 @@ PATH="/Users/qiqi/.npm/_npx/ebaba8b9e55fd0a9/node_modules/node/bin:$PATH" yarn d
 
 ## 后端服务
 
-后端位于 `/Users/qiqi/HivisionIDPhotos`。微信 AppSecret 和随机生成的令牌签名密钥保存在权限为 `600` 的 `.env.miniapp`，已加入后端 `.gitignore`。首次配置时在本机终端执行：
+仓库已经包含 HivisionIDPhotos 基础源码和小程序后端扩展，位于 `backend/hivision-core` 和 `backend/hivision-overlay`。新机器不需要另外克隆上游项目。微信 AppSecret 和随机生成的令牌签名密钥保存在权限为 `600` 的 `.env.miniapp`，已加入后端 `.gitignore`。首次配置时在本机终端执行：
 
 ```sh
-cd /Users/qiqi/HivisionIDPhotos
-.venv/bin/python setup_miniapp_secrets.py
+cd /path/to/id-photo/backend
+./bootstrap.sh
+./configure.sh
 ```
 
-按提示输入 AppSecret，终端不会显示输入内容。若配置文件已存在，脚本不会覆盖；更换密钥时请自行安全编辑该本地文件。服务通过 `start_miniapp_api.sh` 读取配置，只监听 `127.0.0.1:8080`；Cloudflare Tunnel 将公网域名转发到此端口。当前 Mac 的 `com.hivision.api` 启动项会启动该脚本。修改配置或后端代码后重启：
+按提示输入 AppSecret，终端不会显示输入内容。若配置文件已存在，脚本不会覆盖；更换密钥时请自行安全编辑该本地文件。服务通过 `hivision-overlay/start_miniapp_api.sh` 读取配置，只监听 `127.0.0.1:8080`；Cloudflare Tunnel 将公网域名转发到此端口。开发环境可在 `backend` 目录执行 `./start-all.sh` 一次启动 API、支付消息接收和管理后台；生产环境应为三个服务分别配置进程管理。修改配置或后端代码后重新运行启动脚本：
 
 ```sh
-launchctl kickstart -k gui/$(id -u)/com.hivision.api
+cd /path/to/id-photo/backend
+./hivision-overlay/start_miniapp_api.sh
 curl https://photo.ruize.eu.org/health
 ```
 

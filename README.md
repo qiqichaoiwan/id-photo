@@ -210,19 +210,23 @@ yarn build:h5
 
 ### 后端部署（HivisionIDPhotos）
 
-本项目的微信登录、会员、支付回调和管理后台需要额外的后端扩展；代码和重建说明见 [backend/README.md](backend/README.md)。以下上游 Docker 镜像只提供 HivisionIDPhotos 基础能力，不能直接替代本项目的完整后端。
+本项目的微信登录、会员、支付回调和管理后台已与 HivisionIDPhotos 源码一起整合到 [`backend/`](backend/)。下载仓库后运行 `cd backend && ./bootstrap.sh && ./configure.sh && ./start-all.sh` 即可准备和启动完整后端；模型权重会在 bootstrap 阶段按固定地址和 SHA-256 自动下载。详细说明见 [backend/README.md](backend/README.md)。
 
-推荐使用 Docker 部署后端服务：
+推荐先使用仓库自带的后端启动器：
 
 ```bash
-# 拉取镜像
-docker pull linzeyi/hivision_idphotos
+# 准备 Python 依赖和 HivisionIDPhotos 模型
+cd backend
+./bootstrap.sh
 
-# 运行容器
-docker run -d -p 8080:8080 linzeyi/hivision_idphotos
+# 交互式写入本机微信密钥、支付配置和后台密码
+./configure.sh
+
+# 启动图片 API、支付消息接收和后台
+./start-all.sh
 ```
 
-详细部署文档请参考：[HivisionIDPhotos 部署指南](https://github.com/Zeyi-Lin/HivisionIDPhotos#deployment)
+完整部署文档见：[backend/README.md](backend/README.md)。`backend/hivision-core` 保留了 HivisionIDPhotos 的 Gradio 界面和原始 API 源码；本项目实际使用的带鉴权、会员和支付能力的入口是 `backend/hivision-overlay/deploy_api.py`。上游 Docker 镜像只包含基础 HivisionIDPhotos，不能替代本项目后端。
 
 ### 前端部署
 

@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "ms-python.black-formatter",
+    "donjayamanne.python-extension-pack",
+    "njpwerner.autodocstring",
+
+    "editorconfig.editorconfig",
+
+    "gruntfuggly.todo-tree",
+
+    "eamodio.gitlens",
+
+    "PKief.material-icon-theme",
+    "davidanson.vscode-markdownlint",
+    "usernamehw.errorlens",
+    "tamasfe.even-better-toml",
+
+    "littlefoxteam.vscode-python-test-adapter"
+  ]
+}

@@ -43,7 +43,7 @@
 
 2026-10-31 后台升级和开启现网支付前均已使用 SQLite 在线备份会员数据库及配套身份密钥，支付启用前备份位于 `~/Library/Application Support/XiaoqiPhoto/backups/20261031-130309-payment-enable/`。该目录包含敏感身份密钥，需限制访问并与数据库一起安全保存。恢复时应先停止相关服务，再将同一份备份中的数据库和身份密钥配套恢复；恢复前还需备份当时的数据。
 
-后台、图片 API 和推送服务均由本机 LaunchAgent 运行。手动启动后台的命令：
+后台、图片 API 和推送服务均可由本机进程管理器运行。仓库已经包含完整 HivisionIDPhotos 源码和后端扩展；新机器从仓库根目录执行 `cd backend && ./bootstrap.sh && ./configure.sh && ./start-all.sh` 即可准备并启动。当前 Mac 的线上实例仍运行在独立的 `/Users/qiqi/HivisionIDPhotos` 目录，仓库启动不会自动替换线上进程。手动启动后台的命令：
 
 ```sh
 cd /Users/qiqi/HivisionIDPhotos

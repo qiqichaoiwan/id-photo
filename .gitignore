@@ -7,6 +7,8 @@ unpackage/
 .env
 .env.*
 !.env.example
+!backend/.env.example
+!backend/.env.miniapp.admin.example
 *.pem
 *.key
 *.p12

@@ -5,7 +5,8 @@ import os
 import secrets
 import shlex
 
-PATH = '.env.miniapp.payment'
+CONFIG_DIR = os.environ.get('IDPHOTO_CONFIG_DIR', os.path.dirname(os.path.abspath(__file__)))
+PATH = os.path.join(CONFIG_DIR, '.env.miniapp.payment')
 
 
 def main():

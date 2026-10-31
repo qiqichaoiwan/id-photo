@@ -1,0 +1,10 @@
+# HivisionIDPhotos core dependencies
+-r hivision-core/requirements.txt
+-r hivision-core/requirements-app.txt
+
+# Mini-program API, payment receiver, and membership admin
+fastapi>=0.110,<1
+uvicorn[standard]>=0.29,<1
+python-multipart>=0.0.9,<1
+pillow>=10,<13
+cryptography>=44,<47
