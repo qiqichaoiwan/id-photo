@@ -6,16 +6,17 @@ or payment, and an API timeout cannot distinguish an outage from a bad network.
 import sqlite3
 import threading
 import time
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from starlette.responses import JSONResponse
 
 from hivision.creator.human_matting import WEIGHTS
 from miniapp_membership import DB_PATH
-from miniapp_payment import payment_enabled
+from miniapp_payment import payment_enabled, validate_payment_config
 from miniapp_telemetry import writer as metrics_writer
 
 router = APIRouter()
@@ -25,7 +26,7 @@ TRACKED_PATHS = {
     '/convert_image': 'tools', '/add_background': 'tools',
     '/generate_layout_photos': 'tools', '/watermark': 'tools', '/set_kb': 'tools',
     '/auth/wechat': 'login', '/membership/status': 'membership',
-    '/membership/plans': 'membership',
+    '/membership/plans': 'membership', '/membership/orders': 'payment',
 }
 
 
@@ -61,7 +62,8 @@ class ServiceObservationMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        if scope['type'] != 'http' or scope.get('path') not in TRACKED_PATHS:
+        if (scope['type'] != 'http' or scope.get('path') not in TRACKED_PATHS
+                or (scope.get('path') == '/membership/orders' and scope.get('method') != 'POST')):
             return await self.app(scope, receive, send)
         path = scope['path']
         observed = False
@@ -101,12 +103,43 @@ def membership_database_ready():
         return False
 
 
+def payment_catalog_ready():
+    """Check the local catalog without creating or changing the database."""
+    try:
+        uri = 'file:' + quote(str(DB_PATH)) + '?mode=ro'
+        with closing(sqlite3.connect(uri, uri=True, timeout=0.3)) as db:
+            return bool(db.execute("""SELECT 1 FROM plans WHERE status='active'
+                AND TRIM(wechat_product_id) != '' AND months > 0 AND price_fen > 0 LIMIT 1""").fetchone())
+    except sqlite3.Error:
+        return None
+
+
+def payment_check(database_ready, recent):
+    if not payment_enabled():
+        return 'disabled', '暂未开放购买'
+    if not database_ready:
+        return 'unavailable', '会员数据暂不可用'
+    try:
+        validate_payment_config()
+    except (HTTPException, RuntimeError, ValueError, TypeError):
+        return 'unavailable', '支付配置暂不可用'
+    catalog_ready = payment_catalog_ready()
+    if catalog_ready is None:
+        return 'unavailable', '会员套餐数据暂不可用'
+    if not catalog_ready:
+        return 'unavailable', '暂无可购买的会员套餐'
+    if 'payment' in recent:
+        return 'degraded', '近期会员下单出现异常，请稍后重试'
+    return 'ok', '购买已开放，近期下单未发现服务端异常'
+
+
 def status_snapshot(sandbox=False):
     recent = failures.groups()
     model_ready = Path(WEIGHTS['birefnet-v1-lite']).is_file()
     matting_ready = Path(WEIGHTS['modnet_photographic_portrait_matting']).is_file()
     optional_models_ready = all(Path(WEIGHTS[name]).is_file() for name in ('birefnet-v1-lite', 'hivision_modnet', 'modnet_photographic_portrait_matting'))
     database_ready = membership_database_ready()
+    payment_state, payment_detail = payment_check(database_ready, recent)
     checks = [
         {'id': 'connection', 'name': '服务连接', 'state': 'ok', 'detail': '已连接到照片服务'},
         {'id': 'photo', 'name': '证件照制作',
@@ -128,8 +161,7 @@ def status_snapshot(sandbox=False):
          'state': 'unavailable' if not database_ready else ('degraded' if 'membership' in recent else 'ok'),
          'detail': ('会员数据暂不可用' if not database_ready else
                     '近期查询出现异常，请稍后重试' if 'membership' in recent else '会员数据可读取')},
-        {'id': 'payment', 'name': '会员购买', 'state': 'unknown' if payment_enabled() else 'disabled',
-         'detail': '购买功能已开启，支付结果以订单为准' if payment_enabled() else '暂未开放购买'},
+        {'id': 'payment', 'name': '会员购买', 'state': payment_state, 'detail': payment_detail},
     ]
     if sandbox:
         for item in checks:
@@ -139,7 +171,12 @@ def status_snapshot(sandbox=False):
                 item.update(state='disabled', detail='支付沙箱未接入此功能')
         for item in checks:
             if item['id'] == 'payment':
-                item['detail'] = '沙箱购买已开启，仅供测试' if payment_enabled() else '沙箱购买暂未开放'
+                if item['state'] == 'ok':
+                    item['detail'] = '沙箱购买已开启，仅供测试'
+                elif item['state'] == 'disabled':
+                    item['detail'] = '沙箱购买暂未开放'
+                else:
+                    item['detail'] = '沙箱' + item['detail']
     return {
         'status': 'degraded' if any(item['state'] in ('degraded', 'unavailable') for item in checks) else 'ok',
         'checked_at': datetime.now(timezone.utc).isoformat(),

@@ -51,6 +51,12 @@ cd backend
 
 当前设备也安装了 `recover-xiaoqi-photo` 命令和桌面快捷方式。默认后端目录是 `/Users/qiqi/HivisionIDPhotos`；迁移到其他设备时可用 `IDPHOTO_ROOT`、`CLOUDFLARED_CONFIG` 覆盖路径。
 
+## 会员购买监控
+
+服务状态中的“会员购买”依据购买开关、支付配置、会员数据库、可购买套餐以及近 5 分钟的服务端下单异常显示状态。关闭购买时显示未开放；配置或套餐不可用时显示不可用；近期下单出现服务端异常时显示受影响。下单接口再次成功或异常超过 5 分钟后会恢复检查状态；重启服务会清空近期异常记录。
+
+正常状态表示上述本地检查通过，不代表实时验证了微信或 Apple 的支付链路，实际支付结果仍以订单核验为准。
+
 ## 后台公网访问
 
 当前地址为 [https://idphoto-admin.ruize.eu.org/](https://idphoto-admin.ruize.eu.org/)。Cloudflare Access 要求已授权的管理员邮箱验证，后台还要求输入 `admin` 和本机设置的密码；Access 会话有效期为 6 小时。管理后台、Cloudflare Tunnel、网络和这台 Mac 均需正常运行。
