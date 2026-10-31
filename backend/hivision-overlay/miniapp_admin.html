@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>小七快照拍 · 运营后台</title>
+  <link rel="stylesheet" href="/admin.css">
+  <script defer src="/admin.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">七</div><div><strong>小七快照拍</strong><span>运营管理后台</span></div></div>
+    <div class="nav-caption">工作台</div>
+    <nav class="navigation" aria-label="管理菜单">
+      <button data-nav="overview" class="nav-item active"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>运营概览</button>
+      <button data-nav="service" class="nav-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2.5-6 4 12L16 12h5"/><circle cx="12" cy="12" r="9"/></svg>服务监控</button>
+      <button data-nav="users" class="nav-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5a5.5 5.5 0 0 1 11 0V20M16 5.5a3 3 0 0 1 0 5.8M17 14a4.5 4.5 0 0 1 3.5 4.5V20"/></svg>用户与会员</button>
+      <button data-nav="plans" class="nav-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l3.5-4h11L21 8l-9 12L3 8zM3 8h18M9 8l3 12 3-12M6.5 4L9 8m8.5-4L15 8"/></svg>会员套餐</button>
+      <button data-nav="orders" class="nav-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2V3zM8 8h8M8 12h8M8 16h5"/></svg>订单与退款<span id="nav-review" class="nav-count" hidden></span></button>
+      <button data-nav="audit" class="nav-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>操作日志</button>
+      <button data-nav="settings" class="nav-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/><circle cx="12" cy="12" r="7"/></svg>系统设置</button>
+    </nav>
+    <div class="sidebar-footer"><span class="lock-icon">●</span><span><b id="access-mode">本机安全访问</b><small id="access-detail">仅限此设备使用</small></span></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><span class="eyebrow">小七快照拍 / 管理后台</span><h1 id="page-title">运营概览</h1><p id="page-description">在这里查看会员、订单和服务运行情况。</p></div><div class="header-actions"><span id="last-updated" class="updated"></span><button id="refresh-page" class="button secondary">↻ 刷新</button></div></header>
+    <div id="app-alert" class="alert error" role="alert" hidden></div>
+    <section class="view" id="view-overview">
+      <div class="welcome"><div><span class="welcome-kicker">YOUR WORKSPACE</span><h2>让每一次拍摄，都更简单。</h2><p>快速掌握小程序的服务和会员运营情况。</p></div><span class="welcome-illustration" aria-hidden="true">✦</span></div>
+      <div class="stats-grid" id="overview-stats"><div class="loading">正在读取数据…</div></div>
+      <div class="two-column"><article class="card"><div class="card-heading"><div><h2>服务运行状态</h2><p>基于本机照片服务的实时检查</p></div><button class="text-button" data-go="service">查看详情 →</button></div><div id="overview-service" class="stack loading">正在检查…</div></article>
+      <article class="card"><div class="card-heading"><div><h2>待办与快捷入口</h2><p>及时处理需要关注的事项</p></div></div><div id="overview-tasks" class="task-list loading">正在读取…</div></article></div>
+      <p class="footnote">订单数量为本地业务记录；支付与退款的最终结算以微信后台账单为准。</p>
+    </section>
+    <section class="view" id="view-service" hidden>
+      <div class="info-strip"><span class="info-symbol">i</span><div><strong>监控说明</strong><p>状态检查本机照片 API 和本机到公网域名的连接；接口统计只记录接口、HTTP 状态和耗时，不记录照片或用户信息。统计自启用后开始，新请求会清理 30 天前的记录。</p></div></div>
+      <article class="card"><div class="card-heading"><div><h2>实时服务检查</h2><p id="service-time">正在检查…</p></div><span id="service-overall"></span></div><div id="service-checks" class="check-grid loading">正在检查…</div><p id="service-note" class="footnote"></p></article>
+      <article class="card"><div class="card-heading"><div><h2>接口运行统计</h2><p>最近 7 天 · 基于服务端 HTTP 状态，不能代表每张照片的处理质量</p></div></div><div class="table-wrap"><table><thead><tr><th>接口</th><th>请求数</th><th>2xx 响应</th><th>4xx 响应</th><th>5xx 响应</th><th>平均耗时</th><th>最长耗时</th></tr></thead><tbody id="metric-rows"></tbody></table><div id="metric-empty" class="empty">正在读取…</div></div><p id="metric-note" class="footnote"></p></article>
+    </section>
+    <section class="view" id="view-users" hidden>
+      <article class="card"><div class="card-heading"><div><h2>用户与会员</h2><p>使用匿名用户编号查询，查看权益和订单记录。</p></div></div>
+      <form id="user-filter" class="filters"><label>用户编号<input id="user-search" placeholder="输入编号前缀" maxlength="16"></label><label>会员状态<select id="user-status"><option value="all">全部状态</option><option value="active">生效中</option><option value="expired">已到期</option><option value="none">未开通</option><option value="unknown">状态异常</option></select></label><button class="button primary" type="submit">查询</button><button class="button secondary" type="reset">重置</button></form>
+      <div class="table-wrap"><table><thead><tr><th>用户编号</th><th>首次登录</th><th>会员状态</th><th>到期时间</th><th>订单</th><th>待核对</th><th>操作</th></tr></thead><tbody id="user-rows"></tbody></table><div id="user-empty" class="empty">正在读取…</div></div><div id="user-pagination" class="pagination"></div></article>
+    </section>
+    <section class="view" id="view-plans" hidden>
+      <div class="info-strip peach"><span class="info-symbol">i</span><div><strong>套餐与微信商品需分别维护</strong><p>先在微信后台发布商品，再核对商品 ID 与价格上架；正式支付开关关闭时用户无法购买。会员权益为免广告保存。</p></div></div>
+      <article class="card"><div class="card-heading"><div><h2>会员套餐</h2><p>套餐时长按自然月计算，续费时长叠加。</p></div><button class="button primary" id="add-plan">＋ 新增套餐</button></div><div class="table-wrap"><table><thead><tr><th>套餐</th><th>时长</th><th>价格</th><th>微信商品 ID</th><th>排序</th><th>状态</th><th>操作</th></tr></thead><tbody id="plan-rows"></tbody></table><div id="plan-empty" class="empty">正在读取…</div></div></article>
+    </section>
+    <section class="view" id="view-orders" hidden>
+      <article class="card"><div class="card-heading"><div><h2>订单查询</h2><p>筛选本地订单，查单会向微信重新核验订单。</p></div></div><form id="order-filter" class="filters"><label>订单号<input id="order-search" placeholder="输入完整或部分订单号" maxlength="128"></label><label>订单状态<select id="order-status"><option value="all">全部状态</option><option value="pending">确认中</option><option value="paid">已发放</option><option value="closed">已关闭</option></select></label><label>开始日期<input id="order-from" type="date"></label><label>结束日期<input id="order-to" type="date"></label><label class="check-label"><input id="order-review" type="checkbox">仅待核对</label><button class="button primary" type="submit">查询</button><button class="button secondary" type="reset">重置</button></form>
+      <div class="table-wrap"><table><thead><tr><th>订单号</th><th>套餐</th><th>金额</th><th>状态</th><th>创建时间</th><th>核对</th><th>操作</th></tr></thead><tbody id="order-rows"></tbody></table><div id="order-empty" class="empty">正在读取…</div></div><div id="order-pagination" class="pagination"></div><p class="footnote">金额为下单快照。退款、手续费和结算金额请以微信账单为准；当前数据未保存操作系统渠道。</p></article>
+      <article class="card"><div class="card-heading"><div><h2>支付事件与退款核对</h2><p>退款后先人工核对；会员到期时间仅在明确填写时调整。</p></div><select id="event-state" class="compact-select" aria-label="事件状态"><option value="pending">待处理</option><option value="resolved">已处理</option><option value="all">全部事件</option></select></div><div id="event-list" class="event-list loading">正在读取…</div><div id="event-pagination" class="pagination"></div></article>
+    </section>
+    <section class="view" id="view-audit" hidden>
+      <article class="card"><div class="card-heading"><div><h2>管理员操作日志</h2><p>记录套餐、会员、退款核对及设置变更。</p></div></div><div class="table-wrap"><table><thead><tr><th>时间</th><th>操作</th><th>对象</th><th>记录</th></tr></thead><tbody id="audit-rows"></tbody></table><div id="audit-empty" class="empty">正在读取…</div></div><div id="audit-pagination" class="pagination"></div></article>
+    </section>
+    <section class="view" id="view-settings" hidden>
+      <article class="card narrow-card"><div class="card-heading"><div><h2>工作台偏好</h2><p>设置保存后立即应用于此后台。</p></div></div><form id="settings-form" class="settings-form"><label>概览与服务状态自动刷新<select id="settings-refresh"><option value="0">关闭自动刷新</option><option value="15">每 15 秒</option><option value="30">每 30 秒</option><option value="60">每 60 秒</option><option value="120">每 2 分钟</option></select></label><label>列表每页显示<select id="settings-page-size"><option value="10">10 条</option><option value="20">20 条</option><option value="50">50 条</option></select></label><div><button class="button primary" type="submit">保存设置</button></div></form></article>
+      <article class="card narrow-card"><div class="card-heading"><div><h2>运行配置</h2><p>当前服务报告的状态，不在此处修改支付开关。</p></div></div><div id="settings-runtime" class="runtime-line loading">正在检查…</div><p class="footnote">正式购买开关由服务端环境配置控制；会员用户免广告，普通用户继续使用激励广告。</p></article>
+    </section>
+    <footer><span id="footer-label">小七快照拍 · 本机运营后台</span><span>数据以实际服务与微信平台为准</span></footer>
+  </main>
+</div>
+<dialog id="modal" class="modal"><div class="modal-header"><div><h2 id="modal-title"></h2><p id="modal-subtitle"></p></div><button class="icon-button" id="modal-close" aria-label="关闭">×</button></div><div id="modal-body"></div></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+</body></html>

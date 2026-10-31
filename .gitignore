@@ -11,3 +11,11 @@ unpackage/
 *.key
 *.p12
 *.pfx
+
+# Backend runtime data and identity material
+.miniapp_data/
+.miniapp_sandbox/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+backend/**/admin.json

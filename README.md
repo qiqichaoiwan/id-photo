@@ -210,6 +210,8 @@ yarn build:h5
 
 ### 后端部署（HivisionIDPhotos）
 
+本项目的微信登录、会员、支付回调和管理后台需要额外的后端扩展；代码和重建说明见 [backend/README.md](backend/README.md)。以下上游 Docker 镜像只提供 HivisionIDPhotos 基础能力，不能直接替代本项目的完整后端。
+
 推荐使用 Docker 部署后端服务：
 
 ```bash

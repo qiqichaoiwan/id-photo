@@ -1,0 +1,155 @@
+"""Membership catalog and read-only entitlements for the mini-program.
+
+Purchasing is deliberately disabled until WeChat payment verification is installed.
+"""
+import os
+import sqlite3
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException, Request
+
+DATA_DIR = Path(os.environ.get('IDPHOTO_DATA_DIR', Path(__file__).resolve().parent / '.miniapp_data'))
+DB_PATH = DATA_DIR / 'membership.sqlite3'
+
+
+@contextmanager
+def database():
+    DATA_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
+    db = sqlite3.connect(str(DB_PATH), timeout=10)
+    try:
+        os.chmod(DB_PATH, 0o600)
+        db.row_factory = sqlite3.Row
+        db.execute('PRAGMA foreign_keys = ON')
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def initialize():
+    with database() as db:
+        db.executescript('''
+        CREATE TABLE IF NOT EXISTS plans (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL, months INTEGER NOT NULL, price_fen INTEGER NOT NULL,
+          description TEXT NOT NULL DEFAULT '', wechat_product_id TEXT NOT NULL DEFAULT '',
+          status TEXT NOT NULL DEFAULT 'draft', sort_order INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS members (
+          subject TEXT PRIMARY KEY, expires_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS orders (
+          order_no TEXT PRIMARY KEY, subject TEXT NOT NULL, plan_name TEXT NOT NULL,
+          months INTEGER NOT NULL, price_fen INTEGER NOT NULL, status TEXT NOT NULL,
+          created_at TEXT NOT NULL, expires_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS identity_users (
+          user_id TEXT PRIMARY KEY, openid_hash TEXT NOT NULL UNIQUE,
+          encrypted_openid BLOB NOT NULL, created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS identity_aliases (
+          subject TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES identity_users(user_id)
+        );
+        CREATE TABLE IF NOT EXISTS membership_grants (
+          order_no TEXT PRIMARY KEY REFERENCES orders(order_no), subject TEXT NOT NULL,
+          start_at TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS payment_events (
+          event_key TEXT PRIMARY KEY, order_no TEXT, event_type TEXT NOT NULL,
+          state TEXT NOT NULL, created_at TEXT NOT NULL, details TEXT NOT NULL DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS admin_audit (
+          id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, target TEXT NOT NULL,
+          details TEXT NOT NULL, created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS member_adjustments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT, subject TEXT NOT NULL,
+          previous_expires_at TEXT, new_expires_at TEXT NOT NULL,
+          reason TEXT NOT NULL, source TEXT NOT NULL, created_at TEXT NOT NULL
+        );
+        ''')
+        columns = {row['name'] for row in db.execute('PRAGMA table_info(orders)').fetchall()}
+        for column, declaration in (
+            ('product_id', "TEXT NOT NULL DEFAULT ''"), ('platform_order_id', 'TEXT'),
+            ('attach', "TEXT NOT NULL DEFAULT ''"), ('updated_at', "TEXT NOT NULL DEFAULT ''"),
+            ('review_needed', 'INTEGER NOT NULL DEFAULT 0'), ('plan_id', 'INTEGER'),
+            ('channel_order_id', 'TEXT'), ('notify_needed', 'INTEGER NOT NULL DEFAULT 0')
+        ):
+            if column not in columns:
+                db.execute(f'ALTER TABLE orders ADD COLUMN {column} {declaration}')
+        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS orders_platform_id ON orders(platform_order_id) WHERE platform_order_id IS NOT NULL')
+        db.execute('CREATE INDEX IF NOT EXISTS orders_pending ON orders(status, updated_at)')
+        db.execute('CREATE INDEX IF NOT EXISTS orders_subject_created ON orders(subject, created_at)')
+        db.execute('CREATE INDEX IF NOT EXISTS adjustments_subject_created ON member_adjustments(subject, created_at)')
+        db.execute("BEGIN IMMEDIATE")
+        if not db.execute("SELECT 1 FROM settings WHERE key = 'catalog_initialized'").fetchone():
+            db.executemany('INSERT INTO plans (name, months, price_fen, description, sort_order) VALUES (?, ?, ?, ?, ?)', [
+                ('1个月会员', 1, 1200, '会员免广告保存', 1),
+                ('3个月会员', 3, 2400, '会员免广告保存', 2),
+                ('12个月会员', 12, 6800, '会员免广告保存', 3),
+            ])
+            db.execute("INSERT INTO settings (key, value) VALUES ('catalog_initialized', '1')")
+
+
+def subject_for(request: Request) -> str:
+    subject = getattr(request.state, 'subject', None)
+    if not subject:
+        raise HTTPException(503, '会员服务需要启用微信登录')
+    from miniapp_identity import resolve_subject
+    return resolve_subject(subject)
+
+
+def public_plan(row):
+    result = {key: row[key] for key in ('id', 'name', 'months', 'price_fen', 'description', 'status')}
+    from miniapp_payment import payment_enabled
+    if not payment_enabled() and result['status'] == 'active':
+        result['status'] = 'draft'
+    return result
+
+
+router = APIRouter(prefix='/membership')
+
+
+@router.get('/plans')
+def plans():
+    with database() as db:
+        rows = db.execute("SELECT * FROM plans WHERE status != 'archived' ORDER BY sort_order, id").fetchall()
+        return [public_plan(row) for row in rows]
+
+
+@router.get('/status')
+def status(request: Request):
+    subject = subject_for(request)
+    with database() as db:
+        row = db.execute('SELECT expires_at FROM members WHERE subject = ?', (subject,)).fetchone()
+    if not row:
+        return {'active': False, 'status': 'none', 'expires_at': None}
+    try:
+        expiration = datetime.fromisoformat(row['expires_at'].replace('Z', '+00:00'))
+        active = expiration.tzinfo is not None and expiration > datetime.now(timezone.utc)
+    except (ValueError, TypeError):
+        raise HTTPException(503, '会员状态暂不可用')
+    return {'active': active, 'status': 'active' if active else 'expired', 'expires_at': row['expires_at']}
+
+
+@router.get('/orders')
+def orders(request: Request):
+    subject = subject_for(request)
+    with database() as db:
+        return [dict(row) for row in db.execute('SELECT order_no, plan_name, months, price_fen, status, created_at, expires_at, review_needed FROM orders WHERE subject = ? ORDER BY created_at DESC LIMIT 100', (subject,)).fetchall()]
+
+
+@router.get('/orders/{order_no}')
+def order(order_no: str, request: Request):
+    subject = subject_for(request)
+    with database() as db:
+        row = db.execute('SELECT order_no, plan_name, months, price_fen, status, created_at, expires_at, review_needed FROM orders WHERE subject = ? AND order_no = ?', (subject, order_no)).fetchone()
+        if not row:
+            raise HTTPException(404, '订单不存在')
+        return dict(row)
