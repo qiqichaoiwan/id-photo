@@ -26,11 +26,8 @@
           <view class="status-hint">提交申请不代表退款已完成。</view>
           <view class="action-link" @click="load">刷新申请进度 ›</view>
         </view>
-        <view class="help-heading">通过 iPhone 的 Apple 内购支付</view>
-        <view class="note">请前往 Apple“报告问题”申请退款，是否退款由 Apple 决定。</view>
-        <view class="action-link" @click="copyAppleLink">复制 Apple 退款网址 ›</view>
-        <view class="help-heading">其他支付渠道或不确定支付渠道</view>
-        <view class="note">可提交申请给商家核实处理。申请提交后不会立即退款，也不会自动调整会员权益。</view>
+        <view class="help-heading">在小程序内申请退款</view>
+        <view class="note">所有支付渠道均可在此提交申请，由商家核实处理。提交申请不代表退款已完成，也不会自动调整会员权益。</view>
         <view v-if="order.status === 'paid' && (!order.refund_request || order.refund_request.status === 'closed')">
           <view v-if="!showRefundForm" class="refund-button" @click="showRefundForm = true">{{ order.refund_request ? '再次申请售后' : '申请退款' }}</view>
           <view v-else class="refund-form">
@@ -40,6 +37,9 @@
             <view class="form-actions"><view class="cancel-button" @click="cancelRefund">取消</view><view class="refund-button submit-button" :class="{ disabled: submitting }" @click="submitRefund">{{ submitting ? '提交中…' : '提交申请' }}</view></view>
           </view>
         </view>
+        <view class="help-heading">Apple 内购退款说明</view>
+        <view class="note">如通过 Apple 内购支付，您可在此提交申请，由商家协助核实；也可通过 Apple“报告问题”申请，退款结果由 Apple 决定。</view>
+        <view class="action-link" @click="copyAppleLink">复制 Apple 退款网址 ›</view>
       </view>
     </template>
   </view>

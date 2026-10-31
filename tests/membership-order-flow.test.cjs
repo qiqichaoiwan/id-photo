@@ -25,14 +25,21 @@ const cliPath = process.env.WECHAT_CLI_PATH || '/Applications/wechatwebdevtools.
    };
   });
   const list=await mini.reLaunch('/pages/membership/orders');
-  await list.waitFor(800);
+  for (let attempt=0; attempt<20; attempt++) {
+   const ready=await mini.evaluate(()=>{const p=getCurrentPages().slice(-1)[0];return p && p.$vm && !p.$vm.loading;});
+   if (ready) break;
+   await new Promise(resolve=>setTimeout(resolve,200));
+  }
+  await list.waitFor(300);
   assert((await list.$('.order')), '订单列表未显示');
   await (await list.$('.order')).tap();
   await new Promise(resolve=>setTimeout(resolve,800));
   const detail=await mini.currentPage();
   let state=await mini.evaluate(()=>{const p=getCurrentPages().slice(-1)[0];return {route:p.route,orderNo:p.$vm.orderNo,status:p.$vm.order&&p.$vm.order.status};});
   assert.strictEqual(state.orderNo,'Mtest123'); assert.strictEqual(state.status,'paid');
-  assert((await detail.$('.refund-card')), '退款入口未显示');
+  const refundCard=await detail.$('.refund-card');
+  assert(refundCard, '退款入口未显示');
+  assert((await refundCard.text()).includes('所有支付渠道均可在此提交申请'), '退款入口未覆盖所有支付渠道');
   await (await detail.$('.refund-button')).tap();
   await new Promise(resolve=>setTimeout(resolve,400));
   const input=await detail.$('textarea'); assert(input, '退款原因输入框未显示');

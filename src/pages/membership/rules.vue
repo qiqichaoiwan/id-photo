@@ -4,7 +4,7 @@
       <view class="title">会员与退款说明</view>
       <view class="section"><view class="heading">会员权益</view><view>会员有效期内保存照片无需观看激励广告。权益以会员中心显示的状态为准。</view></view>
       <view class="section"><view class="heading">购买与续费</view><view>会员为单次购买，不会自动续费或自动扣款。有效期内续费会从当前到期时间起叠加所购买的自然月数；过期后购买从权益生效时起计算。</view><view>目标月份没有对应日期时，到期日取该月最后一天。例如 1 月 31 日购买 1 个月，到期为 2 月末的对应时刻。</view></view>
-      <view class="section"><view class="heading">订单与退款</view><view>支付后请等待服务器确认会员权益。可在“我的 → 购买记录”查看订单，并进入订单详情了解退款方式。</view><view>通过 Apple 内购支付的订单可向 Apple 申请退款，最终结果由 Apple 决定；其他支付渠道或不确定渠道时，可在订单详情提交申请由商家核实处理。提交申请不代表退款已完成。退款成功后，会员权益由管理员核对处理。</view></view>
+      <view class="section"><view class="heading">订单与退款</view><view>支付后请等待服务器确认会员权益。可在“我的 → 购买记录”查看订单，并进入订单详情了解退款方式。</view><view>所有支付渠道均可在订单详情提交退款申请，由商家核实处理。通过 Apple 内购支付的订单也可向 Apple 申请，最终结果由 Apple 决定。提交申请不代表退款已完成。退款成功后，会员权益由管理员核对处理。</view></view>
       <view class="section link" @click="agreement">查看用户协议 ›</view>
     </view>
   </view>

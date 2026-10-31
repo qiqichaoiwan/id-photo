@@ -2,8 +2,8 @@
     "name" : "id-photos",
     "appid" : "",
     "description" : "",
-    "versionName" : "1.2.2",
-    "versionCode" : "122",
+    "versionName" : "1.2.3",
+    "versionCode" : "123",
     "transformPx" : false,
     "h5" : {
         "devServer" : {
