@@ -3,260 +3,30 @@
     <view class="content-container">
       <view class="header-section">
         <view class="privacy-icon">
-          <u-icon name="lock" size="60" color="white" />
+          <u-icon name="lock" size="28" color="#287c70" />
         </view>
         <text class="page-title">隐私政策</text>
-        <text class="update-date">更新日期：2025年12月</text>
+        <text class="update-date">更新日期：2026年10月</text>
       </view>
 
       <scroll-view class="content-scroll" scroll-y="true">
         <view class="content-section">
           <view class="section-block">
-            <text class="section-title">引言</text>
-            <text class="section-content">
-              小七快照拍（以下简称"本应用"）非常重视用户的隐私保护。本隐私政策详细说明了本应用如何收集、使用、存储和保护您的个人信息。
-            </text>
-            <text class="section-content">
-              使用本应用即表示您已充分阅读、理解并同意本隐私政策的所有条款。如果您不同意本隐私政策的任何内容，请立即停止使用本应用。
-            </text>
+            <text class="section-title">照片处理</text>
+            <text class="section-content">选择或拍摄照片后，照片会通过网络发送至证件照处理服务，以完成人像抠图、证件照制作或水印处理。处理结果会返回您的设备。</text>
           </view>
-
           <view class="section-block">
-            <text class="section-title">1. 信息收集</text>
-            <text class="section-content">
-              1.1 为了提供证件照制作服务，我们可能收集以下类型的信息：
-            </text>
-            <text class="section-list">
-              • 照片数据：您上传或拍摄的原始照片；
-            </text>
-            <text class="section-list">
-              • 设备信息：设备型号、操作系统版本、设备标识符等；
-            </text>
-            <text class="section-list">
-              • 使用数据：应用使用频率、功能使用情况等统计数据；
-            </text>
-            <text class="section-list">
-              • 日志数据：应用运行日志、错误报告等。
-            </text>
-            <text class="section-content">
-              1.2 我们仅在为您提供服务所必需的范围内收集信息，不会收集与服务无关的个人信息。
-            </text>
-            <text class="section-content">
-              1.3 大部分信息收集都会明确告知您并获得您的同意。
-            </text>
+            <text class="section-title">本地保存</text>
+            <text class="section-content">处理过程中会在小程序本地生成临时图片。您选择保存到电子照时，照片会保存在本设备的小程序存储中；保存到相册需要您的授权。</text>
+            <text class="section-content">您可以在“我的 → 清理本地照片”删除小程序内的电子照、历史记录和临时图片。已保存到手机相册的照片请在相册中删除。</text>
           </view>
-
           <view class="section-block">
-            <text class="section-title">2. 信息使用</text>
-            <text class="section-content">
-              2.1 我们收集的个人信息主要用于以下目的：
-            </text>
-            <text class="section-list">
-              • 提供证件照制作、编辑、存储等核心服务；
-            </text>
-            <text class="section-list">
-              • 优化应用性能和用户体验；
-            </text>
-            <text class="section-list">
-              • 分析应用使用情况，改进产品功能；
-            </text>
-            <text class="section-list">
-              • 提供客户服务和技术支持；
-            </text>
-            <text class="section-list">
-              • 防范欺诈、滥用等违法行为。
-            </text>
-            <text class="section-content">
-              2.2 除本隐私政策另有规定外，我们不会将您的个人信息用于其他目的。
-            </text>
-            <text class="section-content">
-              2.3 我们使用行业标准的安全技术保护您的个人信息。
-            </text>
+            <text class="section-title">微信服务与广告</text>
+            <text class="section-content">本应用使用微信登录能力验证访问，并使用微信激励视频广告。微信及广告服务可能按照其规则处理相关数据，具体请参阅微信的隐私说明。</text>
           </view>
-
           <view class="section-block">
-            <text class="section-title">3. 信息保护</text>
-            <text class="section-content">
-              3.1 我们采用多种安全措施保护您的个人信息：
-            </text>
-            <text class="section-list">
-              • 数据加密：使用SSL/TLS加密技术保护数据传输；
-            </text>
-            <text class="section-list">
-              • 访问控制：严格的权限管理和访问控制机制；
-            </text>
-            <text class="section-list">
-              • 安全审计：定期进行安全检查和漏洞扫描；
-            </text>
-            <text class="section-list">
-              • 数据备份：定期备份重要数据，防止数据丢失。
-            </text>
-            <text class="section-content">
-              3.2 我们会定期审查和更新安全措施，以应对不断变化的安全威胁。
-            </text>
-            <text class="section-content">
-              3.3 但请注意，任何互联网传输方法都无法保证100%的安全。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">4. 信息共享</text>
-            <text class="section-content">
-              4.1 除以下情况外，我们不会向第三方分享您的个人信息：
-            </text>
-            <text class="section-list">
-              • 获得您的明确同意；
-            </text>
-            <text class="section-list">
-              • 法律法规要求或政府部门要求；
-            </text>
-            <text class="section-list">
-              • 为保护我们的权利、财产或安全；
-            </text>
-            <text class="section-list">
-              • 与可信的服务提供商合作（需遵守保密义务）。
-            </text>
-            <text class="section-content">
-              4.2 如发生合并、收购或资产转让，我们可能会转让您的个人信息，但会提前通知您。
-            </text>
-            <text class="section-content">
-              4.3 我们不会出售、租赁或以其他方式向第三方披露您的个人信息。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">5. Cookie使用</text>
-            <text class="section-content">
-              5.1 我们可能使用Cookie和类似技术来改善用户体验：
-            </text>
-            <text class="section-list">
-              • 记住您的偏好设置；
-            </text>
-            <text class="section-list">
-              • 分析应用使用情况；
-            </text>
-            <text class="section-list">
-              • 提供个性化内容。
-            </text>
-            <text class="section-content">
-              5.2 您可以通过设备设置禁用Cookie，但这可能影响某些功能的正常使用。
-            </text>
-            <text class="section-content">
-              5.3 我们使用的第三方服务可能有自己的Cookie政策。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">6. 数据保留</text>
-            <text class="section-content">
-              6.1 我们仅在为实现收集目的所必需的期限内保留您的个人信息。
-            </text>
-            <text class="section-content">
-              6.2 保留期限根据信息类型和使用目的而有所不同：
-            </text>
-            <text class="section-list">
-              • 电子照数据：根据您的删除请求或服务条款规定；
-            </text>
-            <text class="section-list">
-              • 使用日志：通常保留6个月；
-            </text>
-            <text class="section-list">
-              • 错误报告：通常保留30天。
-            </text>
-            <text class="section-content">
-              6.3 超出保留期限的信息将被安全删除或匿名化处理。
-            </text>
-            <text class="section-content">
-              6.4 法律法规另有规定的除外。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">7. 用户权利</text>
-            <text class="section-content">
-              7.1 您对自己的个人信息享有以下权利：
-            </text>
-            <text class="section-list">
-              • 访问权：查看我们持有的关于您的个人信息；
-            </text>
-            <text class="section-list">
-              • 更正权：要求更正不准确的个人信息；
-            </text>
-            <text class="section-list">
-              • 删除权：要求删除您的个人信息（在法律允许的范围内）；
-            </text>
-            <text class="section-list">
-              • 限制权：限制对您个人信息的使用；
-            </text>
-            <text class="section-list">
-              • 可携带权：以结构化格式获取您的个人信息。
-            </text>
-            <text class="section-content">
-              7.2 如需行使上述权利，请通过本政策末尾的联系方式与我们联系。
-            </text>
-            <text class="section-content">
-              7.3 我们将在收到请求后合理时间内予以回复。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">8. 儿童隐私</text>
-            <text class="section-content">
-              8.1 本应用主要面向成年用户，不刻意收集14岁以下儿童的个人信息。
-            </text>
-            <text class="section-content">
-              8.2 如果我们发现收集了儿童的个人信息，将采取步骤删除这些信息。
-            </text>
-            <text class="section-content">
-              8.3 如果您是儿童的父母或监护人，发现孩子向我们提供了个人信息，请立即联系我们。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">9. 国际数据传输</text>
-            <text class="section-content">
-              9.1 您的个人信息可能在我们运营业务的国家/地区之间传输。
-            </text>
-            <text class="section-content">
-              9.2 如数据传输至您所在国家/地区以外的地区，我们将确保适当的数据保护措施。
-            </text>
-            <text class="section-content">
-              9.3 我们将遵守适用的数据传输法律法规要求。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">10. 政策更新</text>
-            <text class="section-content">
-              10.1 我们可能不时更新本隐私政策。
-            </text>
-            <text class="section-content">
-              10.2 重大变更将通过应用内通知等方式告知您。
-            </text>
-            <text class="section-content">
-              10.3 更新后的政策将在应用内公布，您继续使用应用即表示接受更新后的政策。
-            </text>
-          </view>
-
-          <view class="section-block">
-            <text class="section-title">11. 联系我们</text>
-            <text class="section-content">
-              如您对本隐私政策有任何疑问或需要行使您的权利，请通过以下方式联系我们：
-            </text>
-            <text class="section-list">
-              • 意见反馈：个人中心 → 意见反馈
-            </text>
-            <text class="section-list">
-              • 隐私邮箱：761287561@qq.com
-            </text>
-            <text class="section-content">
-              我们将在收到您的请求后及时回复并处理。
-            </text>
-          </view>
-
-          <view class="footer-section">
-            <text class="footer-text">本政策自发布之日起生效</text>
-            <text class="footer-text">© 2025 小七快照拍 版权所有</text>
+            <text class="section-title">联系我们</text>
+            <text class="section-content">有关照片和隐私的问题，可通过 761287561@qq.com 联系我们。</text>
           </view>
         </view>
       </scroll-view>
@@ -506,4 +276,7 @@ export default class PrivacyPolicy extends Vue {
     box-shadow: 0 8rpx 24rpx rgba(247, 114, 97, 0.4);
   }
 }
+
+@import '@/assets/legacy-page-themes.scss';
+@include document-page-theme;
 </style>

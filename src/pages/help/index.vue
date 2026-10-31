@@ -3,7 +3,7 @@
     <view class="content-container">
       <view class="header-section">
         <view class="help-icon">
-              <u-icon name="integral-fill" size="60" color="white" />
+              <u-icon name="integral-fill" size="28" color="#356caa" />
         </view>
         <text class="page-title">使用帮助</text>
         <text class="subtitle">快速上手，小七快照拍助您制作专业证件照</text>
@@ -697,4 +697,7 @@ export default class Help extends Vue {
     box-shadow: 0 8rpx 24rpx rgba(247, 114, 97, 0.4);
   }
 }
+
+@import '@/assets/legacy-page-themes.scss';
+@include document-page-theme;
 </style>

@@ -193,6 +193,8 @@ class StorageManagerClass {
   /**
    * 更新统计信息
    */
+  recordPhotoCreated(): void { this.updateStatistics('add'); }
+
   private updateStatistics(action: 'add' | 'delete'): void {
     const statistics = this.getUserStatistics();
     statistics.lastUseDate = Date.now();

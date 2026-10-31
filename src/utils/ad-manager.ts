@@ -1,86 +1,84 @@
-/**
- * 激励视频广告管理器
- * 统一管理小程序激励视频广告
- */
-
 import { adConfig } from '@/config';
+import { getMembershipStatus } from '@/api/membership';
 
-declare const wx: WechatMiniprogram.Wx;
+declare const wx: any;
+export type SaveAccess = 'member' | 'ad' | null;
 
 class AdManager {
   private videoAd: any = null;
-  private adUnitId: string = adConfig.rewardedVideoAdUnitId;
+  private active: Promise<SaveAccess> | null = null;
 
-  /**
-   * 初始化激励视频广告
-   */
-  init() {
-    if (typeof wx === 'undefined' || !wx.createRewardedVideoAd) {
-      console.warn('当前环境不支持激励视频广告');
-      return;
-    }
-
+  private init(): boolean {
+    if (this.videoAd) return true;
+    // #ifdef MP-WEIXIN
+    if (!adConfig.rewardedVideoAdUnitId || typeof wx === 'undefined' || !wx.createRewardedVideoAd) return false;
     try {
-      this.videoAd = wx.createRewardedVideoAd({ adUnitId: this.adUnitId });
-      
-      this.videoAd.onLoad(() => {
-        console.log('激励视频广告加载成功');
-      });
-      
-      this.videoAd.onError((err: any) => {
-        console.error('激励视频广告加载失败', err);
-      });
-    } catch (error) {
-      console.error('创建激励视频广告失败:', error);
-    }
+      this.videoAd = wx.createRewardedVideoAd({ adUnitId: adConfig.rewardedVideoAdUnitId });
+      return true;
+    } catch (_) { return false; }
+    // #endif
+    // #ifndef MP-WEIXIN
+    return false;
+    // #endif
   }
 
-  /**
-   * 显示激励视频广告并等待用户完成观看
-   * @returns Promise<boolean> 用户是否完整观看了广告
-   */
-  async show(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!this.videoAd) {
-        console.warn('激励视频广告实例不存在');
-        resolve(false);
-        return;
-      }
-
-      try {
-        this.videoAd.show().catch(() => {
-          // 显示失败，尝试重新加载
-          this.videoAd?.load()
-            .then(() => this.videoAd?.show())
-            .catch(() => resolve(false));
-        });
-
-        const handleClose = (res: any) => {
-          try {
-            this.videoAd?.offClose(handleClose);
-          } catch (e) {
-            console.warn('移除广告关闭监听器失败:', e);
-          }
-          
-          resolve(res?.isEnded || false);
-        };
-
-        this.videoAd.onClose(handleClose);
-      } catch (error) {
-        console.error('显示广告过程中发生错误:', error);
-        resolve(false);
-      }
+  /** Fetch membership for each save; a local flag never grants the entitlement. */
+  async authorize(): Promise<SaveAccess> {
+    if (this.active) return null;
+    this.active = this.authorizeOnce().then((result) => {
+      this.active = null;
+      return result;
+    }, (error) => {
+      this.active = null;
+      throw error;
     });
+    return this.active;
   }
 
-  /**
-   * 销毁广告实例
-   */
-  destroy() {
-    this.videoAd = null;
+  async show(): Promise<boolean> { return !!(await this.authorize()); }
+
+  private async authorizeOnce(): Promise<SaveAccess> {
+    try {
+      const status = await getMembershipStatus();
+      if (status.active === true) return 'member';
+    } catch (_) {
+      // If the entitlement cannot be confirmed, keep the ordinary-user ad flow.
+    }
+    return (await this.showVideo()) ? 'ad' : null;
+  }
+
+  private async showVideo(): Promise<boolean> {
+    if (!this.init()) {
+      uni.showToast({ title: '广告暂不可用，请稍后重试', icon: 'none' });
+      return false;
+    }
+    const ad = this.videoAd;
+    return new Promise<boolean>((resolve) => {
+      let settled = false;
+      let attempting = true;
+      const finish = (completed: boolean, unavailable: boolean = false) => {
+        if (settled) return;
+        settled = true;
+        try { ad.offClose(onClose); } catch (_) { /* listener may already be removed */ }
+        try { if (ad.offError) ad.offError(onError); } catch (_) { /* listener may already be removed */ }
+        if (!completed) uni.showToast({ title: unavailable ? '广告暂不可用，请稍后重试' : '请看完广告后再继续', icon: 'none' });
+        resolve(completed);
+      };
+      const onClose = (result: any) => finish(!result || result.isEnded === true);
+      const onError = () => { if (!attempting) finish(false, true); };
+      try {
+        ad.onClose(onClose);
+        if (ad.onError) ad.onError(onError);
+        Promise.resolve().then(() => ad.show()).catch(() => {
+          if (settled) return;
+          return Promise.resolve().then(() => ad.load()).then(() => {
+            if (!settled) return ad.show();
+          });
+        }).then(() => { attempting = false; }).catch(() => finish(false, true));
+      } catch (_) { finish(false, true); }
+    });
   }
 }
 
-// 导出单例
 export const adManager = new AdManager();
 export default adManager;

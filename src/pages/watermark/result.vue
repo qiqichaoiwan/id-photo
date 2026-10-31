@@ -3,7 +3,7 @@
     <!-- 顶部标题区 -->
     <view class="header-section">
       <view class="success-icon">
-        <text class="icon-text">✓</text>
+        <u-icon name="checkmark" size="24" color="#287c70" />
       </view>
       <text class="header-title">水印添加成功</text>
       <text class="header-desc">图片已处理完成，可保存到相册</text>
@@ -29,11 +29,11 @@
     <!-- 操作提示卡片 -->
     <view class="tips-card">
       <view class="tip-item">
-        <text class="tip-icon">💡</text>
+        <view class="tip-icon"><u-icon name="checkmark-circle" size="19" color="#287c70" /></view>
         <text class="tip-text">水印已添加到图片中，原图不受影响</text>
       </view>
       <view class="tip-item">
-        <text class="tip-icon">📱</text>
+        <view class="tip-icon"><u-icon name="photo" size="19" color="#356caa" /></view>
         <text class="tip-text">保存后可在相册中查看和分享</text>
       </view>
     </view>
@@ -41,11 +41,11 @@
     <!-- 底部操作区 -->
     <view class="bottom-actions">
       <view class="btn-secondary" @click="retake">
-        <text class="btn-icon">↺</text>
+        <view class="btn-icon"><u-icon name="reload" size="19" color="#383e49" /></view>
         <text>重新添加</text>
       </view>
       <view class="btn-primary" @click="saveImage">
-        <text class="btn-icon">↓</text>
+        <view class="btn-icon"><u-icon name="download" size="19" color="#ffffff" /></view>
         <text>保存图片</text>
       </view>
     </view>
@@ -54,129 +54,48 @@
     <button v-show="false" open-type="share" />
 
     <!-- 加载页面 -->
-    <LoadingOverlay :show="saving" text="保存中" />
+    <LoadingOverlay :show="processing" text="正在保存照片" />
   </view>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { Component } from "vue-property-decorator";
-import StorageManager from '@/utils/storage'
-import { adConfig } from '@/config'
+import { adManager } from '@/utils/ad-manager'
+import { writeTemporaryImage, removeTemporaryImage } from '@/utils/image-file'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 @Component({ components: { LoadingOverlay } })
 export default class WatermarkResult extends Vue {
   imagePath: string = '';
-  base64Data: string = '';
   saving: boolean = false;
-  videoAd: any = null;
-  prefix = 'data:image/png;base64,';
+  processing: boolean = false;
 
   onLoad(options: any) {
-    this.initRewardedVideoAd();
-    if (options.image) {
-      const imageData = decodeURIComponent(options.image);
-      if (imageData.startsWith('data:image/')) {
-        this.imagePath = imageData;
-        this.base64Data = imageData;
-      } else {
-        this.imagePath = imageData;
-      }
-    }
+    if (options.image) this.imagePath = decodeURIComponent(options.image);
   }
 
-  initRewardedVideoAd() {
-    if (wx.createRewardedVideoAd) {
-      try {
-        this.videoAd = wx.createRewardedVideoAd({ adUnitId: adConfig.rewardedVideoAdUnitId });
-        this.videoAd.onLoad(() => console.log('广告加载成功'));
-        this.videoAd.onError((err: any) => console.error('广告加载失败', err));
-      } catch (e) { console.error('创建广告失败:', e); }
-    }
-  }
-
-  async showRewardedVideoAd(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!this.videoAd) { resolve(false); return; }
-      try {
-        this.videoAd.show().catch(() => {
-          this.videoAd?.load().then(() => this.videoAd?.show()).catch(() => resolve(false));
-        });
-        const handleClose = (res: any) => {
-          this.videoAd?.offClose(handleClose);
-          resolve(res?.isEnded || false);
-        };
-        this.videoAd.onClose(handleClose);
-      } catch { resolve(false); }
-    });
-  }
-
-  retake() {
-    uni.navigateBack();
-  }
+  onUnload() { removeTemporaryImage(this.imagePath); }
+  retake() { uni.navigateBack(); }
 
   async saveImage() {
-    const adVerified = await this.showRewardedVideoAd();
-    if (!adVerified) {
-      uni.showToast({ title: '请看完广告后再继续', icon: 'none' });
-      return;
-    }
-
+    if (this.saving) return;
     this.saving = true;
-    const that = this;
-
-    if (this.base64Data) {
-      const saveData = this.base64Data.replace(this.prefix, '');
-      const tempPath = `${wx.env.USER_DATA_PATH}/watermark_${Date.now()}.png`;
-      
-      uni.getFileSystemManager().writeFile({
-        filePath: tempPath,
-        data: saveData,
-        encoding: 'base64',
-        success() { that.savePhotoToAlbum(tempPath); },
-        fail() {
-          that.saving = false;
-          uni.showModal({ title: '保存失败', content: '保存发生异常', showCancel: false });
-        }
-      });
-    } else {
-      this.savePhotoToAlbum(this.imagePath);
-    }
-  }
-
-  savePhotoToAlbum(tempPath: string) {
-    const self = this;
-    uni.saveImageToPhotosAlbum({
-      filePath: tempPath,
-      success() {
-        try {
-          StorageManager.savePhotoRecord({
-            originalImage: self.base64Data,
-            resultImages: { idPhoto: '', layoutPhoto: '', watermarkPhoto: self.base64Data },
-            parameters: { size: null, backgroundColor: '', isHd: false }
-          });
-        } catch {}
-        uni.showToast({ title: '保存成功', icon: 'success' });
-      },
-      fail(err) {
-        if (err.errMsg === 'saveImageToPhotosAlbum:fail cancel') {
-          uni.showToast({ title: '已取消保存', icon: 'none' });
-        } else {
-          uni.showModal({ title: '保存失败', content: '请授权相册权限', showCancel: false });
-        }
-      },
-      complete() {
-        self.saving = false;
-        self.cleanupTempFile(tempPath);
-      }
-    });
-  }
-
-  cleanupTempFile(tempPath: string) {
+    let temporary = '';
     try {
-      uni.getFileSystemManager().unlink({ filePath: tempPath, success() {}, fail() {} });
-    } catch {}
+      if (!this.imagePath) throw new Error('图片已失效，请重新制作');
+      if (!await adManager.show()) return;
+      this.processing = true;
+      const path = this.imagePath.startsWith('data:image/')
+        ? (temporary = await writeTemporaryImage(this.imagePath, 'watermark')) : this.imagePath;
+      await new Promise<void>((resolve, reject) => uni.saveImageToPhotosAlbum({
+        filePath: path, success: () => resolve(),
+        fail: (err: any) => reject(new Error(err.errMsg && err.errMsg.indexOf('cancel') >= 0 ? '已取消保存' : '保存失败，请检查相册权限'))
+      }));
+      uni.showToast({ title: '保存成功', icon: 'success' });
+    } catch (err: any) {
+      uni.showModal({ title: '保存失败', content: err.message || '保存失败，请重试', showCancel: false });
+    } finally { removeTemporaryImage(temporary); this.processing = false; this.saving = false; }
   }
 
   onShareTimeline() {
@@ -354,4 +273,7 @@ export default class WatermarkResult extends Vue {
   margin-right: 8rpx;
   font-size: 32rpx;
 }
+
+@import '@/assets/legacy-page-themes.scss';
+@include result-page-theme;
 </style>

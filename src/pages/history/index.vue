@@ -2,12 +2,7 @@
   <view class="history-page">
     <!-- 历史记录列表 -->
     <view class="history-content">
-      <view v-if="historyList.length === 0" class="empty-state">
-        <u-icon name="photo" size="80" color="#ccc" />
-        <text class="empty-text">暂无历史记录</text>
-        <text class="empty-desc">开始制作您的第一张证件照吧</text>
-        <u-button color="#F77261" @click="goToCreate">开始制作</u-button>
-      </view>
+      <InlineState v-if="historyList.length === 0" title="暂无历史记录" description="开始制作您的第一张证件照吧" action-text="开始制作" icon="clock" @action="goToCreate" />
 
       <view v-else class="history-list">
         <view 
@@ -77,16 +72,19 @@
 import Vue from 'vue';
 import { Component } from "vue-property-decorator";
 import StorageManager, { PhotoRecord } from '@/utils/storage';
+import { writeTemporaryImage, removeTemporaryImage } from '@/utils/image-file';
+import InlineState from '@/components/InlineState.vue';
 
 // 声明微信小程序类型
 declare const wx: any;
 
-@Component({})
+@Component({ components: { InlineState } })
 export default class History extends Vue {
   historyList: PhotoRecord[] = [];
   showActions: boolean = false;
   showClearModal: boolean = false;
   selectedItem: PhotoRecord | null = null;
+  previewFiles: string[] = [];
 
   actionList = [
     {
@@ -94,7 +92,7 @@ export default class History extends Vue {
       id: 'view'
     },
     {
-      name: '重新编辑',
+      name: '按此规格重新制作',
       id: 'edit'
     },
     {
@@ -150,12 +148,21 @@ export default class History extends Vue {
   /**
    * 查看历史记录详情
    */
-  viewHistory(item: PhotoRecord) {
-    // 跳转到编辑页面，传入历史数据
-    uni.navigateTo({
-      url: '/pages/photo/edit?history=' + encodeURIComponent(JSON.stringify(item))
-    });
+  async viewHistory(item: PhotoRecord) {
+    try {
+      let path = item.resultImages && item.resultImages.idPhoto;
+      if (!path) throw new Error('照片已失效，请重新制作');
+      if (path.startsWith('data:image/')) {
+        path = await writeTemporaryImage(path, 'history');
+        this.previewFiles.push(path);
+      }
+      uni.previewImage({ current: path, urls: [path], fail: () => uni.showToast({ title: '照片已失效，请重新制作', icon: 'none' }) });
+    } catch (error: any) {
+      uni.showToast({ title: error.message || '照片无法预览', icon: 'none' });
+    }
   }
+
+  onUnload() { this.previewFiles.forEach(removeTemporaryImage); this.previewFiles = []; }
 
   /**
    * 清空所有历史记录
@@ -204,9 +211,12 @@ export default class History extends Vue {
    * 编辑历史记录
    */
   editHistory(item: PhotoRecord) {
-    uni.navigateTo({
-      url: '/pages/photo/index?edit=' + encodeURIComponent(JSON.stringify(item))
-    });
+    const size = item.parameters && item.parameters.size;
+    if (!size || !Number.isFinite(Number(size.pxWidth)) || !Number.isFinite(Number(size.pxHeight)) || Number(size.pxWidth) <= 0 || Number(size.pxHeight) <= 0) {
+      uni.showToast({ title: '历史规格已失效，请重新选择', icon: 'none' }); return;
+    }
+    this.$store.commit('SET_PHOTO_SIZE', size);
+    uni.navigateTo({ url: '/pages/photo/index' });
   }
 
   /**
@@ -391,4 +401,15 @@ export default class History extends Vue {
     }
   }
 }
+
+@import '@/assets/design-tokens.scss';
+.history-page { background: $page; color: $ink; }
+.history-content { padding: 28rpx 32rpx calc(40rpx + env(safe-area-inset-bottom)); }
+.empty-state { @include card; padding: 80rpx 32rpx; }
+.empty-state .empty-text { color: $ink; font-size: 32rpx; }
+.empty-state .empty-desc { color: $muted; }
+.history-list .history-item { @include card; margin-bottom: 20rpx; }
+.history-list .history-item .item-info { min-width: 0; }
+.history-list .history-item .item-info .item-header { flex-wrap: wrap; gap: 8rpx; }
+.history-list .history-item .item-info .item-details { flex-wrap: wrap; }
 </style>

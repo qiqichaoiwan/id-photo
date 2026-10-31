@@ -1,0 +1,34 @@
+$brand: #cc3d35;
+$page: #f6f6f6;
+$surface: #ffffff;
+$ink: #17191c;
+$muted: #666b73;
+$border: #e8eaed;
+$brand-soft: #fff0ed;
+$blue: #356caa;
+$blue-soft: #eaf3ff;
+$teal: #287c70;
+$teal-soft: #e9f6f2;
+$violet: #715a9b;
+$violet-soft: #f1edf9;
+$amber: #956322;
+$amber-soft: #fff4df;
+$shadow-card: 0 4rpx 18rpx rgba(36, 39, 45, .035);
+
+@mixin card {
+  background: $surface;
+  border-radius: 24rpx;
+  box-shadow: $shadow-card;
+}
+
+@mixin primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96rpx;
+  border-radius: 20rpx;
+  background: $brand;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+}

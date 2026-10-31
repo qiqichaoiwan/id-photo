@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <view class="header-bar">
       <view class="header-title">
-        <u-icon name="folder" size="24" color="#F77261" />
+        <u-icon name="folder" size="24" color="#cc3d35" />
         <text class="title-text">我的电子照</text>
       </view>
       <view class="header-actions">
@@ -36,21 +36,7 @@
       </view>
 
       <!-- 空状态 -->
-      <view class="empty-state" v-if="photos.length === 0">
-        <view class="empty-icon">
-          <u-icon name="folder" size="80" color="#D8D8D8" />
-        </view>
-        <view class="empty-title">暂无电子照</view>
-        <view class="empty-desc">制作证件照后可以保存到电子照</view>
-        <view class="empty-actions">
-          <u-button 
-            color="#F77261" 
-            text="立即制作" 
-            :custom-style="primaryButtonStyle" 
-            @click="navigateToPhoto" 
-          />
-        </view>
-      </view>
+      <InlineState v-if="photos.length === 0" title="暂无电子照" description="制作证件照后，可选择保存到本机" action-text="开始制作" icon="photo" @action="navigateToPhoto" />
 
       <!-- 电子照列表 -->
       <view class="photo-list" v-else>
@@ -58,6 +44,8 @@
           class="photo-item" 
           v-for="photo in photos" 
           :key="photo.id"
+          role="button"
+          :aria-label="'查看' + photo.name"
           @click="selectPhoto(photo)">
           <view class="photo-preview">
             <image 
@@ -72,7 +60,7 @@
               <text class="photo-name">{{ photo.name }}</text>
               <view class="photo-actions">
                 <view class="action-btn" @click.stop="downloadPhoto(photo)">
-                  <u-icon name="download" size="16" color="#F77261" />
+                  <u-icon name="download" size="16" color="#cc3d35" />
                 </view>
                 <view class="action-btn delete" @click.stop="deletePhoto(photo.id)">
                   <u-icon name="trash" size="16" color="#FF4D4F" />
@@ -109,7 +97,7 @@
           @click="clearAll" 
         />
         <u-button 
-          color="#F77261" 
+          color="#cc3d35"
           text="继续制作" 
           :custom-style="primaryButtonStyle" 
           @click="navigateToPhoto" 
@@ -123,7 +111,7 @@
     </button>
 
     <!-- 加载页面 -->
-    <LoadingOverlay :show="loading" text="处理中" />
+    <LoadingOverlay :show="processing" text="正在保存照片" />
   </view>
 </template>
 
@@ -131,13 +119,15 @@
 import Vue from 'vue';
 import { Component } from "vue-property-decorator";
 import { ElectronicPhotoManager, ElectronicPhoto } from '@/utils/electronic-photo';
-import { adConfig } from '@/config';
+import { adManager } from '@/utils/ad-manager';
+import { writeTemporaryImage, removeTemporaryImage } from '@/utils/image-file';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
+import InlineState from '@/components/InlineState.vue';
 
 // 声明微信小程序类型
 declare const wx: any;
 
-@Component({ components: { LoadingOverlay } })
+@Component({ components: { LoadingOverlay, InlineState } })
 export default class ElectronicPage extends Vue {
   // 确保管理器在组件中可用
   electronicPhotoManager = ElectronicPhotoManager;
@@ -145,27 +135,29 @@ export default class ElectronicPage extends Vue {
   primaryButtonStyle = {
     width: '280rpx',
     height: '88rpx',
-    borderRadius: '44rpx',
-    fontSize: '32rpx',
-    fontWeight: 'bold',
-    boxShadow: '0 8rpx 24rpx rgba(247, 114, 97, 0.3)'
+    borderRadius: '20rpx',
+    fontSize: '30rpx',
+    fontWeight: '600',
+    boxShadow: 'none'
   };
   
   secondaryButtonStyle = {
     width: '280rpx',
     height: '88rpx',
-    borderRadius: '44rpx',
-    fontSize: '32rpx',
-    fontWeight: 'bold',
-    borderColor: '#FF4D4F',
-    color: '#FF4D4F'
+    borderRadius: '20rpx',
+    fontSize: '30rpx',
+    fontWeight: '600',
+    borderColor: '#e8eaed',
+    color: '#17191c'
   };
 
   photos: ElectronicPhoto[] = [];
   loading: boolean = false;
+  processing: boolean = false;
+  previewing: boolean = false;
+  previewPaths: { [id: string]: string } = {};
   MAX_COUNT = 2;
-  //激励视频广告实例
-  videoAd: any = null;
+
 
   mounted() {
     this.loadPhotos();
@@ -185,100 +177,8 @@ export default class ElectronicPage extends Vue {
   }
 
   onShow() {
-    // 初始化激励视频广告
-    this.initRewardedVideoAd()
     // 页面显示时重新加载数据
     this.loadPhotos();
-  }
-
-  /**
-   * 初始化激励视频广告
-   */
-  initRewardedVideoAd() {
-    // 在页面onLoad回调事件中创建激励视频广告实例
-    if (wx.createRewardedVideoAd) {
-      try {
-        this.videoAd = wx.createRewardedVideoAd({
-          adUnitId: adConfig.rewardedVideoAdUnitId
-        })
-        
-        this.videoAd.onLoad(() => {
-          console.log('激励视频广告加载成功')
-        })
-        
-        this.videoAd.onError((err: any) => {
-          console.error('激励视频广告加载失败', err)
-        })
-        
-        this.videoAd.onClose((res: any) => {
-          console.log('激励视频广告关闭', res)
-        })
-      } catch (error) {
-        console.error('创建激励视频广告失败:', error)
-      }
-    } else {
-      console.warn('当前环境不支持激励视频广告')
-    }
-  }
-
-  /**
-   * 显示激励视频广告并验证
-   */
-  async showRewardedVideoAd(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!this.videoAd) {
-        console.warn('激励视频广告实例不存在')
-        resolve(false)
-        return
-      }
-
-      try {
-        this.videoAd.show().catch((err: any) => {
-          console.error('激励视频广告显示失败:', err)
-          // 失败重试
-          if (this.videoAd) {
-            this.videoAd.load()
-              .then(() => {
-                if (this.videoAd) {
-                  this.videoAd.show()
-                }
-              })
-              .catch((retryErr: any) => {
-                console.error('激励视频广告重试失败:', retryErr)
-                resolve(false)
-              })
-          } else {
-            resolve(false)
-          }
-        })
-        
-        // 监听广告关闭事件
-        const handleClose = (res: any) => {
-          try {
-            if (this.videoAd) {
-              this.videoAd.offClose(handleClose)
-            }
-          } catch (e) {
-            console.warn('移除广告关闭监听器失败:', e)
-          }
-          
-          if (res && typeof res === 'object' && res.isEnded) {
-            // 用户看完广告
-            resolve(true)
-          } else {
-            // 用户没看完广告
-            resolve(false)
-          }
-        }
-        
-        if (this.videoAd) {
-          this.videoAd.onClose(handleClose)
-        }
-      } catch (error) {
-        console.error('显示广告过程中发生错误:', error)
-        resolve(false)
-      }
-    })
   }
 
   /**
@@ -286,7 +186,12 @@ export default class ElectronicPage extends Vue {
    */
   loadPhotos() {
     const photos = ElectronicPhotoManager.getAll();
-    console.log('加载电子照列表:', photos);
+    Object.keys(this.previewPaths).forEach(id => {
+      if (!photos.some(photo => photo.id === id)) {
+        removeTemporaryImage(this.previewPaths[id]);
+        delete this.previewPaths[id];
+      }
+    });
     this.photos = photos;
   }
 
@@ -300,83 +205,46 @@ export default class ElectronicPage extends Vue {
   /**
    * 选择照片
    */
-  selectPhoto(photo: ElectronicPhoto) {
-    // 可以添加预览功能
-    console.log('选择照片:', photo);
+  async selectPhoto(photo: ElectronicPhoto) {
+    if (this.previewing) return;
+    this.previewing = true;
+    try {
+      if (!photo.hdBase64) throw new Error('照片已失效，请重新制作');
+      let path = this.previewPaths[photo.id] || photo.hdBase64;
+      if (path.startsWith('data:image/')) {
+        path = await writeTemporaryImage(path, 'electronic-preview');
+        this.previewPaths[photo.id] = path;
+      }
+      uni.previewImage({ current: path, urls: [path], fail: () => uni.showToast({ title: '照片无法预览', icon: 'none' }) });
+    } catch (error: any) {
+      uni.showToast({ title: error.message || '照片无法预览', icon: 'none' });
+    } finally { this.previewing = false; }
+  }
+
+  onUnload() {
+    Object.keys(this.previewPaths).forEach(id => removeTemporaryImage(this.previewPaths[id]));
+    this.previewPaths = {};
   }
 
   /**
    * 下载照片
    */
   async downloadPhoto(photo: ElectronicPhoto) {
-    // 显示激励视频广告
-    const adVerified = await this.showRewardedVideoAd()
-    if (!adVerified) {
-      uni.showToast({
-        title: '请看完广告后再继续操作',
-        icon: 'none',
-        duration: 2000
-      })
-      return
-    }
-
+    if (this.loading) return;
+    this.loading = true;
+    let path = '';
     try {
-      this.loading = true;
-      
-      // 选择高清还是标清
-      const base64 = photo.hdBase64;
-      const base64Data = base64.replace('data:image/png;base64,', '');
-      
-      // 使用用户数据目录保存临时文件
-      const tempPath = `${wx.env.USER_DATA_PATH}/electronic_photo_${Date.now()}.png`;
-      const fs = uni.getFileSystemManager();
-      
-      console.log('准备写入临时文件:', tempPath);
-      
-      fs.writeFile({
-        filePath: tempPath,
-        data: base64Data,
-        encoding: 'base64',
-        success: () => {
-          console.log('临时文件写入成功，准备保存到相册:', tempPath);
-          // 保存到相册
-          uni.saveImageToPhotosAlbum({
-            filePath: tempPath,
-            success: () => {
-              console.log('保存到相册成功');
-              uni.showToast({
-                title: '保存成功',
-                icon: 'success'
-              });
-            },
-            fail: (err) => {
-              console.error('保存到相册失败:', err);
-              uni.showToast({
-                title: '保存失败',
-                icon: 'none'
-              });
-            }
-          });
-        },
-        fail: (err) => {
-          console.error('写入临时文件失败:', err);
-          uni.showToast({
-            title: '保存失败',
-            icon: 'none'
-          });
-        },
-        complete: () => {
-          this.loading = false;
-        }
-      });
-    } catch (error) {
-      console.error('下载照片失败:', error);
-      this.loading = false;
-      uni.showToast({
-        title: '保存失败',
-        icon: 'none'
-      });
-    }
+      if (!await adManager.show()) return;
+      this.processing = true;
+      path = await writeTemporaryImage(photo.hdBase64, 'electronic');
+      await new Promise<void>((resolve, reject) => uni.saveImageToPhotosAlbum({
+        filePath: path, success: () => resolve(),
+        fail: (err: any) => reject(new Error(err.errMsg && err.errMsg.indexOf('cancel') >= 0 ? '已取消保存' : '保存失败，请检查相册权限'))
+      }));
+      uni.showToast({ title: '保存成功', icon: 'success' });
+    } catch (error: any) {
+      uni.showModal({ title: '保存失败', content: error.message || '保存失败，请重试', showCancel: false });
+    } finally { removeTemporaryImage(path); this.processing = false; this.loading = false; }
   }
 
   /**
@@ -506,7 +374,7 @@ export default class ElectronicPage extends Vue {
 
 <style lang="scss" scoped>
 // 大师级设计变量
-$primary-color: #F77261;
+$primary-color: #cc3d35;
 $primary-light: #FF9A8B;
 $primary-dark: #E55A4A;
 $success-color: #52C41A;
@@ -837,7 +705,7 @@ $shadow-heavy: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
   z-index: 999;
   width: 100rpx;
   height: 100rpx;
-  background: linear-gradient(135deg, #F77261 0%, #FF9A8B 100%);
+  background: linear-gradient(135deg, #cc3d35 0%, #FF9A8B 100%);
   border-radius: 50rpx;
   display: flex;
   align-items: center;
@@ -886,4 +754,20 @@ $shadow-heavy: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
 }
 
 .stats-card { animation-delay: 0.2s; }
+
+@import '@/assets/design-tokens.scss';
+.electronic-page { background: $page; color: $ink; }
+.header-bar { background: transparent; border: 0; padding: 32rpx 32rpx 8rpx; position: static; }
+.header-bar .header-title .title-text { color: $ink; font-size: 40rpx; }
+.header-bar .header-actions .stats-info .stats-text { background: $blue-soft; color: $blue; }
+.content-scroll { padding: 24rpx 32rpx 150rpx; }
+.stats-card, .photo-list .photo-item { @include card; border: 0; padding: 28rpx; }
+.stats-card .stats-grid .stats-item .stats-value { color: $blue; }
+.empty-state { @include card; margin-top: 24rpx; padding: 80rpx 32rpx; }
+.empty-state .empty-icon { width: 152rpx; height: 152rpx; border-radius: 40rpx; display: flex; align-items: center; justify-content: center; background: $blue-soft; }
+.empty-state .empty-title { color: $ink; font-size: 32rpx; }
+.empty-state .empty-desc { color: $muted; font-size: 26rpx; }
+.empty-state .empty-actions ::v-deep .u-button, .bottom-action-bar .action-container ::v-deep .u-button { border-radius: 20rpx; font-size: 30rpx; font-weight: 600; letter-spacing: 0; }
+.bottom-action-bar { border-top: 1rpx solid $border; box-shadow: 0 -4rpx 20rpx rgba(36,39,45,.04); padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom)); }
+.stats-card, .photo-item { animation: none; }
 </style>

@@ -32,6 +32,18 @@
 		}
 	],
 	"subPackages": [
+        { "root": "pages/status", "pages": [{ "path": "index", "style": { "navigationBarTitleText": "服务状态", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f6f6f6" } }] },
+        { "root": "pages/convert", "pages": [{ "path": "index", "style": { "navigationBarTitleText": "格式与压缩", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f6f6f6" } }] },
+        {
+            "root": "pages/membership",
+            "pages": [
+                { "path": "index", "style": { "navigationBarTitleText": "会员中心", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f6f6f6" } },
+                { "path": "confirm", "style": { "navigationBarTitleText": "套餐详情", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f6f6f6" } },
+                { "path": "rules", "style": { "navigationBarTitleText": "会员与退款说明", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f6f6f6" } },
+                { "path": "orders", "style": { "navigationBarTitleText": "购买记录", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f6f6f6" } },
+                { "path": "order", "style": { "navigationBarTitleText": "订单详情", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "backgroundColor": "#f6f6f6" } }
+            ]
+        },
 		{
 			"root": "pages/photo",
 			"pages": [
@@ -191,7 +203,7 @@
 	},
 	"tabBar": {
 		"color": "#7A7E83",
-		"selectedColor": "#F77261",
+		"selectedColor": "#CC3D35",
 		"borderStyle": "white",
 		"backgroundColor": "#ffffff",
 		"list": [

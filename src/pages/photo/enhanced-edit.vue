@@ -152,7 +152,7 @@
           </view>
           <view class="enhancement-actions">
             <u-button size="mini" type="info" plain @click="resetEnhancement">重置</u-button>
-            <u-button size="mini" color="#F77261" @click="applyEnhancement">应用</u-button>
+            <u-button size="mini" color="#cc3d35" @click="applyEnhancement">应用</u-button>
           </view>
         </view>
       </view>
@@ -219,7 +219,7 @@
       </view>
       <view class="action-right">
         <u-button 
-          color="#F77261" 
+          color="#cc3d35"
           :custom-style="{ width: '200rpx', borderRadius: '20rpx' }"
           @click="saveCurrentPhoto"
           :loading="saving"
@@ -249,7 +249,7 @@
         </view>
         <view class="dialog-actions">
           <u-button type="info" plain @click="showCustomColor = false">取消</u-button>
-          <u-button color="#F77261" @click="applyCustomColor">确定</u-button>
+          <u-button color="#cc3d35" @click="applyCustomColor">确定</u-button>
         </view>
       </view>
     </u-popup>
@@ -270,11 +270,13 @@
         </view>
         <view class="dialog-actions">
           <u-button type="info" plain @click="showSizeAdjust = false">取消</u-button>
-          <u-button color="#F77261" @click="applySizeAdjust">确定</u-button>
+          <u-button color="#cc3d35" @click="applySizeAdjust">确定</u-button>
         </view>
       </view>
     </u-popup>
     
+    <LoadingOverlay :show="loadingMessages.length > 0" :text="loadingMessages[loadingMessages.length - 1] || '正在处理'" />
+
     <!-- 原生分享按钮 - 使用open-type="share"直接触发分享 -->
     <button v-show="false" open-type="share" class="native-share-button" @getuserinfo="onShareSuccess">
       <u-icon name="share" size="20" color="white" />
@@ -293,8 +295,9 @@ import { PhotoSize } from '@/model/PhotoSize';
 import { cloneDeep } from 'lodash'
 import { PhotoPath } from '@/model/Interfaces'
 import StorageManager from '@/utils/storage';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
 
-@Component({})
+@Component({ components: { LoadingOverlay } })
 export default class EnhancedEdit extends Vue {
   colors = { ...Colors };
   
@@ -313,6 +316,9 @@ export default class EnhancedEdit extends Vue {
   showCustomColor: boolean = false;
   showSizeAdjust: boolean = false;
   saving: boolean = false;
+  loadingMessages: string[] = [];
+  startProcessing(text: string) { this.loadingMessages.push(text); }
+  finishProcessing() { this.loadingMessages.pop(); }
   
   // 参数设置
   enhancementParams: ImageEnhancementParams = {
@@ -454,7 +460,7 @@ export default class EnhancedEdit extends Vue {
    */
   async applyBackgroundColor() {
     try {
-      uni.showLoading({ title: '处理中...' });
+      this.startProcessing('正在处理照片');
       
       const targetImage = this.isHd ? this.photoPath.base64HDPath : this.photoPath.base64Path;
       const form = {
@@ -471,7 +477,7 @@ export default class EnhancedEdit extends Vue {
     } catch (error) {
       uni.showToast({ title: '处理失败', icon: 'none' });
     } finally {
-      uni.hideLoading();
+      this.finishProcessing();
     }
   }
 
@@ -495,7 +501,7 @@ export default class EnhancedEdit extends Vue {
    */
   async applyEnhancement() {
     try {
-      uni.showLoading({ title: '增强中...' });
+      this.startProcessing('正在调整照片');
       
       // 调用完整的图像处理流程，包含增强参数
       await this.regenerateWithEnhancement();
@@ -504,7 +510,7 @@ export default class EnhancedEdit extends Vue {
     } catch (error) {
       uni.showToast({ title: '增强失败', icon: 'none' });
     } finally {
-      uni.hideLoading();
+      this.finishProcessing();
     }
   }
 
@@ -562,7 +568,7 @@ export default class EnhancedEdit extends Vue {
    */
   async applyWatermark() {
     try {
-      uni.showLoading({ title: '添加水印...' });
+      this.startProcessing('正在添加水印');
       
       const form = { ...this.watermarkParams };
       const targetImage = this.currentImage;
@@ -576,7 +582,7 @@ export default class EnhancedEdit extends Vue {
     } catch (error) {
       uni.showToast({ title: '水印添加失败', icon: 'none' });
     } finally {
-      uni.hideLoading();
+      this.finishProcessing();
     }
   }
 
@@ -592,7 +598,7 @@ export default class EnhancedEdit extends Vue {
    */
   async cropPhoto() {
     try {
-      uni.showLoading({ title: '裁剪中...' });
+      this.startProcessing('正在裁剪照片');
       
       const form = {
         height: this.photoSize.pxHeight,
@@ -612,7 +618,7 @@ export default class EnhancedEdit extends Vue {
     } catch (error) {
       uni.showToast({ title: '裁剪失败', icon: 'none' });
     } finally {
-      uni.hideLoading();
+      this.finishProcessing();
     }
   }
 
@@ -633,7 +639,7 @@ export default class EnhancedEdit extends Vue {
     }
     
     try {
-      uni.showLoading({ title: '调整中...' });
+      this.startProcessing('正在调整大小');
       
       const form = {
         kb: parseInt(this.targetKb),
@@ -652,7 +658,7 @@ export default class EnhancedEdit extends Vue {
     } catch (error) {
       uni.showToast({ title: '调整失败', icon: 'none' });
     } finally {
-      uni.hideLoading();
+      this.finishProcessing();
     }
   }
 
@@ -698,7 +704,7 @@ export default class EnhancedEdit extends Vue {
    */
   async generateLayoutPhoto() {
     try {
-      uni.showLoading({ title: '生成排版照...' });
+      this.startProcessing('正在生成排版照');
       
       const form = {
         height: this.photoSize.pxHeight,
@@ -719,7 +725,7 @@ export default class EnhancedEdit extends Vue {
     } catch (error) {
       uni.showToast({ title: '生成失败', icon: 'none' });
     } finally {
-      uni.hideLoading();
+      this.finishProcessing();
     }
   }
 
@@ -936,7 +942,7 @@ export default class EnhancedEdit extends Vue {
     justify-content: center;
     
     &.color-active {
-      border-color: #F77261;
+      border-color: #cc3d35;
       transform: scale(1.1);
     }
     
@@ -960,7 +966,7 @@ export default class EnhancedEdit extends Vue {
     transition: all 0.3s ease;
     
     &.quality-active {
-      border-color: #F77261;
+      border-color: #cc3d35;
       background: rgba(247, 114, 97, 0.1);
     }
     
@@ -1080,4 +1086,13 @@ export default class EnhancedEdit extends Vue {
     justify-content: center;
   }
 }
+
+@import '@/assets/design-tokens.scss';
+.photo-edit { background: $page; padding-bottom: calc(150rpx + env(safe-area-inset-bottom)); }
+.navbar { display: none; }
+.preview-section { margin: 24rpx 32rpx 20rpx; border-radius: 24rpx; }
+.tools-section { padding: 0 32rpx; }
+.tool-group { @include card; padding: 28rpx; }
+.quality-selector .quality-item.quality-active { border-color: $brand; background: $brand-soft; }
+.bottom-actions { padding: 18rpx 32rpx calc(20rpx + env(safe-area-inset-bottom)); border-color: $border; box-shadow: 0 -4rpx 20rpx rgba(36,39,45,.04); }
 </style>

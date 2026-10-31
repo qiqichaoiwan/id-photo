@@ -1,112 +1,116 @@
-import { baseUrl } from "@/config";
-import Method from "@/enums/Method";
-import { Result, RequestOptions } from "@/model/Result";
+import { baseUrl } from '@/config';
+import Method from '@/enums/Method';
+import { Result, RequestOptions } from '@/model/Result';
+import { currentToken, invalidateToken, loginToBackend } from '@/utils/auth';
 
-// 默认请求头
-const header = { "Content-Type": "application/json; charset=UTF-8" };
+const timeout = 120000;
 
-// 默认超时时间
-const timeout = 10000;
+function responseError(status: number, body: any): Error {
+  if (status === 429) return new Error('操作过于频繁，请稍后再试');
+  if (status >= 500) return new Error('服务暂不可用，请稍后再试');
+  return new Error(typeof body?.detail === 'string' ? body.detail :
+    (typeof body?.message === 'string' ? body.message : '请求失败，请稍后重试'));
+}
 
-const request = <T>(
-  url: string,
-  options: RequestOptions = { method: Method.GET }
-): Promise<T> => {
-  return new Promise<T>((resolve, reject) => {
-    const { method, data, gateway, loading, headers, remoteUrl } = options;
-    const tokenStr = "test";
-    const token =
-      tokenStr && tokenStr.length > 0 ? { Authorization: tokenStr } : {};
-    const targetHeader = headers ? headers : header;
-    //远端地址 如果没有特殊指明  就用baseUrl
-    const targetUrl = remoteUrl ? remoteUrl : baseUrl;
-    //加载动画
-    loading && uni.showLoading();
-    uni.request({
-      url: gateway ? targetUrl + gateway + url : targetUrl + url,
-      method,
-      data,
-      timeout,
-      header: { ...targetHeader, ...token },
-      success: ({ data }) => {
-        //类型转换
-        const { code, data: resData, message } = data as Result<T>;
-        if (code == 401) {
-          uni.showToast({
-            title: "登录信息已过期,请关闭APP后重新打开",
-            icon: "none",
-            mask: true,
-          });
-          // removeToken()
-          reject(resData);
-        }
+function checkResponse<T>(status: number, data: any): T {
+  let body = data;
+  if (typeof data === 'string') {
+    try { body = JSON.parse(data); } catch (_) {
+      throw new Error('服务器返回的数据无法读取，请稍后重试');
+    }
+  }
+  if (status < 200 || status >= 300) throw responseError(status, body);
+  if (body && body.status === false) {
+    throw new Error(body.message || body.error || '图片处理失败，请检查照片后重试');
+  }
+  return body as T;
+}
 
-        if (!code || code !== 200) {
-          uni.showToast({
-            title: message || "服务器开小差了，请稍后再试~",
-            icon: "none",
-            mask: true,
-          });
-          reject(resData);
-        }
-        resolve(resData);
-      },
-      fail: ({ errMsg }) => {
-        uni.showModal({
-          title: "提示",
-          content: `服务器开小差了，请稍后再试~`,
-          showCancel: false,
-        });
-        console.error(errMsg);
-      },
-      complete: () => {
-        //关闭加载动画
-        loading && uni.hideLoading();
-      },
-    });
-  });
+function authHeaders(): AnyObject {
+  const token = currentToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function withLoginRetry<T>(action: () => Promise<T>, useBackend: boolean): Promise<T> {
+  // Avoid sending an image twice on the first request to a protected backend.
+  if (useBackend && process.env.VUE_APP_BACKEND_AUTH_REQUIRED !== 'false' && !currentToken()) {
+    await loginToBackend();
+  }
+  try {
+    return await action();
+  } catch (error: any) {
+    if (!useBackend || error?.statusCode !== 401) throw error;
+    invalidateToken();
+    await loginToBackend();
+    return action();
+  }
+}
+
+function unauthorized(): Error {
+  const error: any = new Error('登录状态已过期');
+  error.statusCode = 401;
+  return error;
+}
+
+const request = async <T>(url: string, options: RequestOptions = { method: Method.GET }): Promise<T> => {
+  const { method, data, gateway, loading, headers, remoteUrl, timeout: requestTimeout } = options;
+  const targetUrl = remoteUrl || baseUrl;
+  const useBackend = targetUrl === baseUrl;
+  if (loading) uni.showLoading();
+  try {
+    return await withLoginRetry(() => new Promise<T>((resolve, reject) => {
+      uni.request({
+        url: targetUrl + (gateway || '') + url,
+        method: method || Method.GET,
+        data,
+        timeout: requestTimeout || timeout,
+        header: { 'Content-Type': 'application/json; charset=UTF-8', ...(headers || {}), ...(useBackend ? authHeaders() : {}) },
+        success: ({ data: response, statusCode }: any) => {
+          if (statusCode === 401 && useBackend) { reject(unauthorized()); return; }
+          try {
+            const body: any = checkResponse(statusCode, response);
+            if (body && typeof body.code === 'number') {
+              if (body.code !== 200) throw new Error(body.message || '请求失败，请重试');
+              resolve((body as Result<T>).data);
+            } else resolve(body);
+          } catch (error) { reject(error); }
+        },
+        fail: () => reject(new Error('网络连接失败，请检查网络后重试'))
+      });
+    }), useBackend);
+  } finally {
+    if (loading) uni.hideLoading();
+  }
 };
 
-/**
- *
- * @param url 路径
- * @param options
- * @returns
- */
-export const uploadFile = <T>(
+export const uploadFile = async <T>(
   url: string,
   name: string,
   path: string,
-  options: RequestOptions = { method: Method.GET }
+  options: RequestOptions = { method: Method.POST }
 ): Promise<T> => {
-  const { data: formData, gateway } = options;
-  //JSON化
-  let jsonData: any;
-  // #ifdef MP-WEIXIN
-  jsonData = JSON.stringify(formData);
-  // #endif
-  // #ifdef H5
-  jsonData = formData;
-  // #endif
-  return new Promise<any>((resolve, reject) => {
-    uni.uploadFile({
-      url: gateway ? baseUrl + gateway + url : baseUrl + url,
-      filePath: path,
-      name: name,
-      formData: formData,
-      success: ({ data }) => {
-        resolve(JSON.parse(data));
-      },
-      fail(err) {
-        uni.showModal({
-          title: "提示",
-          content: `服务器开小差了，请稍后再试~`,
-          showCancel: false,
-        });
-        console.error(err);
-      },
-    });
+  if (!path) throw new Error('图片路径无效，请重新选择照片');
+  const formData: AnyObject = {};
+  Object.keys(options.data || {}).forEach((key) => {
+    const value = options.data[key];
+    if (value !== undefined && value !== null) formData[key] = String(value);
   });
+  return withLoginRetry(() => new Promise<T>((resolve, reject) => {
+    uni.uploadFile({
+      url: baseUrl + (options.gateway || '') + url,
+      filePath: path,
+      name,
+      formData,
+      timeout,
+      header: authHeaders(),
+      success: ({ data, statusCode }: any) => {
+        if (Number(statusCode) === 401) { reject(unauthorized()); return; }
+        try { resolve(checkResponse<T>(Number(statusCode), data)); }
+        catch (error) { reject(error); }
+      },
+      fail: () => reject(new Error('图片上传失败，请检查网络后重试'))
+    });
+  }), true);
 };
 
 export default request;

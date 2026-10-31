@@ -12,7 +12,7 @@
         </view>
         <view class="preview-actions">
           <u-button :plain="true" text="重新选择" :custom-style="secondaryButtonStyle" @click="show = false" />
-          <u-button color="#F77261" text="确认选择" :custom-style="primaryButtonStyle" @click="confirmSelect" />
+          <u-button color="#cc3d35" text="确认选择" :custom-style="primaryButtonStyle" @click="confirmSelect" />
         </view>
       </view>
     </u-overlay>
@@ -22,57 +22,57 @@
       <!-- 功能介绍卡片 -->
       <view class="feature-card">
         <view class="feature-header">
-          <u-icon name="checkmark-circle-fill" color="#F77261" size="20" />
+          <u-icon name="checkmark-circle-fill" color="#cc3d35" size="20" />
           <text class="feature-title">功能特性</text>
         </view>
         
         <view class="feature-list">
           <view class="feature-item">
             <view class="feature-icon">
-              <u-icon name="file-text" size="18" color="#F77261" />
+              <u-icon name="file-text" size="18" color="#356caa" />
             </view>
             <view class="feature-content">
               <view class="feature-name">文字水印</view>
               <view class="feature-desc">支持自定义文字内容</view>
             </view>
             <view class="feature-check">
-              <u-icon name="checkmark-circle-fill" color="#52C41A" size="16" />
+              <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
             </view>
           </view>
           
-          <!-- <view class="feature-item">
+          <view class="feature-item">
             <view class="feature-icon">
-              <u-icon name="more-circle" size="18" color="#F77261" />
+              <u-icon name="more-circle" size="18" color="#287c70" />
             </view>
             <view class="feature-content">
               <view class="feature-name">样式丰富</view>
               <view class="feature-desc">字体大小、颜色、透明度调节</view>
             </view>
             <view class="feature-check">
-              <u-icon name="checkmark-circle-fill" color="#52C41A" size="16" />
+              <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
             </view>
           </view>
           
           <view class="feature-item">
             <view class="feature-icon">
-              <u-icon name="grid" size="18" color="#F77261" />
+              <u-icon name="grid" size="18" color="#715a9b" />
             </view>
             <view class="feature-content">
               <view class="feature-name">平铺水印</view>
               <view class="feature-desc">支持水印间距调节</view>
             </view>
             <view class="feature-check">
-              <u-icon name="checkmark-circle-fill" color="#52C41A" size="16" />
+              <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
             </view>
-          </view> -->
+          </view>
           
           <view class="feature-item">
             <view class="feature-icon">
-              <u-icon name="download" size="18" color="#F77261" />
+              <u-icon name="download" size="18" color="#956322" />
             </view>
             <view class="feature-content">
-              <view class="feature-name">高清输出</view>
-              <view class="feature-desc">支持多种分辨率选择</view>
+              <view class="feature-name">保留图片尺寸</view>
+              <view class="feature-desc">输出结果保留原始像素尺寸</view>
             </view>
           </view>
         </view>
@@ -81,7 +81,7 @@
       <!-- 设置选项卡片 -->
       <view class="settings-card">
         <view class="settings-header">
-          <u-icon name="setting" color="#F77261" size="20" />
+          <u-icon name="setting" color="#cc3d35" size="20" />
           <text class="settings-title">水印设置</text>
         </view>
         
@@ -89,7 +89,7 @@
           <view class="setting-item">
             <view class="setting-header-row">
               <view class="setting-icon">
-                <u-icon name="file-text" size="20" color="#F77261" />
+                <u-icon name="file-text" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
                 <text class="setting-title">水印文字</text>
@@ -99,16 +99,16 @@
             <view class="setting-options">
               <u--input 
                 v-model="watermarkText" 
-                placeholder="请输入水印文字"
+                placeholder="请输入水印文字" maxlength="100"
                 :custom-style="inputCustomStyle"
               />
             </view>
           </view>
           
-          <!-- <view class="setting-item">
+          <view class="setting-item">
             <view class="setting-header-row">
               <view class="setting-icon">
-                <u-icon name="file-text" size="20" color="#F77261" />
+                <u-icon name="file-text" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
                 <text class="setting-title">字体大小</text>
@@ -117,7 +117,7 @@
             </view>
             <view class="setting-options">
               <view class="slider-container">
-                <u-slider 
+                <u-slider active-color="#cc3d35"
                   v-model="fontSize" 
                   :min="10" 
                   :max="100" 
@@ -131,7 +131,7 @@
           <view class="setting-item">
             <view class="setting-header-row">
               <view class="setting-icon">
-                <u-icon name="eye" size="20" color="#F77261" />
+                <u-icon name="eye" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
                 <text class="setting-title">透明度</text>
@@ -140,7 +140,7 @@
             </view>
             <view class="setting-options">
               <view class="slider-container">
-                <u-slider 
+                <u-slider active-color="#cc3d35"
                   v-model="opacity" 
                   :min="0" 
                   :max="100" 
@@ -154,7 +154,7 @@
           <view class="setting-item">
             <view class="setting-header-row">
               <view class="setting-icon">
-                <u-icon name="reload" size="20" color="#F77261" />
+                <u-icon name="reload" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
                 <text class="setting-title">旋转角度</text>
@@ -163,7 +163,7 @@
             </view>
             <view class="setting-options">
               <view class="slider-container">
-                <u-slider 
+                <u-slider active-color="#cc3d35"
                   v-model="angle" 
                   :min="0" 
                   :max="360" 
@@ -177,7 +177,7 @@
           <view class="setting-item">
             <view class="setting-header-row">
               <view class="setting-icon">
-                <u-icon name="more-circle" size="20" color="#F77261" />
+                <u-icon name="more-circle" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
                 <text class="setting-title">水印颜色</text>
@@ -191,8 +191,8 @@
                   :key="index"
                   :class="['color-item', { 'color-selected': selectedColor === color.value }]"
                   :style="{ backgroundColor: color.value }"
-                  @click="selectedColor = color.value"
-                ></view>
+                  @click="selectedColor = color.value" :aria-label="color.label + (selectedColor === color.value ? '，已选择' : '')" role="button"
+                ><text v-if="selectedColor === color.value" class="color-check" :style="{ color: ['#FFFFFF', '#00FF00', '#FFFF00', '#00FFFF'].indexOf(color.value) >= 0 ? '#17191c' : '#ffffff' }">✓</text></view>
               </view>
             </view>
           </view>
@@ -200,7 +200,7 @@
           <view class="setting-item">
             <view class="setting-header-row">
               <view class="setting-icon">
-                <u-icon name="grid" size="20" color="#F77261" />
+                <u-icon name="grid" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
                 <text class="setting-title">水印间距</text>
@@ -209,7 +209,7 @@
             </view>
             <view class="setting-options">
               <view class="slider-container">
-                <u-slider 
+                <u-slider active-color="#cc3d35"
                   v-model="space" 
                   :min="10" 
                   :max="100" 
@@ -219,19 +219,18 @@
               </view>
             </view>
           </view>
-           -->
           <view class="setting-item">
             <view class="setting-header-row">
               <view class="setting-icon">
-                <u-icon name="level" size="20" color="#F77261" />
+                <u-icon name="grid" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
-                <text class="setting-title">输出分辨率</text>
-                <text class="setting-desc">选择图片输出质量</text>
+                <text class="setting-title">输出 DPI</text>
+                <text class="setting-desc">用于打印尺寸标记，图片像素不变</text>
               </view>
             </view>
             <view class="setting-options">
-              <u-radio-group v-model="dpi" direction="row" wrap="true">
+              <u-radio-group v-model="dpi" direction="row" wrap="true" active-color="#cc3d35">
                 <u-radio 
                   v-for="(item, index) in dpiOptions" 
                   :key="index"
@@ -248,7 +247,7 @@
       <!-- 使用建议卡片 -->
       <view class="tips-card">
         <view class="tips-header">
-          <u-icon name="info-circle-fill" color="#FFA940" size="20" />
+          <u-icon name="info-circle-fill" color="#956322" size="20" />
           <text class="tips-title">使用建议</text>
         </view>
         
@@ -271,6 +270,7 @@
 
     <!-- 底部操作区域 -->
     <view class="action-container">
+      <view v-if="preselectedImage" class="selected-image-action" @click="confirmSelect">已选择照片 · 开始添加水印 ›</view>
       <view class="action-tips">
         <u-icon name="info-circle-fill" color="#8C8C8C" size="14" />
         <text class="tips-text">请选择清晰的图片，添加个性水印</text>
@@ -283,7 +283,7 @@
           @click="chooseImage('album')"
         />
         <u-button 
-          color="#F77261" 
+          color="#cc3d35"
           text="立即拍摄" 
           :custom-style="primaryButtonStyle" 
           @click="chooseImage('camera')"
@@ -291,80 +291,8 @@
       </view>
     </view>
 
-    <!-- 自定义相机遮罩 -->
-    <view class="camera-overlay" v-if="showCamera" @click.stop>
-      <camera 
-        class="camera-view" 
-        :device-position="cameraPosition"
-        :flash="flashMode"
-        @stop="onCameraStop"
-        @error="onCameraError"
-        @ready="onCameraReady"
-      >
-        <!-- 拍照指引 -->
-        <view class="photo-guide">
-          <svg class="photo-svg" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
-            <!-- 取景框 -->
-            <rect x="50" y="50" width="200" height="300" 
-                  fill="none" stroke="#4CAF50" stroke-width="3" stroke-dasharray="8,4" opacity="0.9" rx="10"/>
-            
-            <!-- 四个角标 -->
-            <path d="M50,70 L70,70 L70,50" fill="none" stroke="#4CAF50" stroke-width="4" opacity="0.9"/>
-            <path d="M230,70 L250,70 L250,50" fill="none" stroke="#4CAF50" stroke-width="4" opacity="0.9"/>
-            <path d="M50,330 L70,330 L70,350" fill="none" stroke="#4CAF50" stroke-width="4" opacity="0.9"/>
-            <path d="M230,330 L250,330 L250,350" fill="none" stroke="#4CAF50" stroke-width="4" opacity="0.9"/>
-          </svg>
-        </view>
-        
-        <!-- 相机控制区域 -->
-        <view class="camera-bottom-controls">
-          <!-- 相册导入按钮 -->
-          <view class="album-btn" @click="chooseFromAlbum">
-            <u-icon name="photo" size="24" color="#fff" />
-            <text class="album-text">相册</text>
-          </view>
-          
-          <!-- 圆形拍照按钮 -->
-          <view class="capture-btn-large" @click="capturePhoto">
-            <view class="capture-ring"></view>
-            <view class="capture-center"></view>
-          </view>
-          
-          <!-- 切换摄像头按钮 -->
-          <view class="switch-camera-btn" @click="switchCamera">
-            <u-icon name="reload" size="24" color="#fff" />
-          </view>
-        </view>
-      </camera>
-    </view>
-
-    <!-- 全屏拍照预览 -->
-    <view class="full-screen-preview" v-if="showCapturePreview" @click.stop>
-      <!-- 顶部控制栏 -->
-      <view class="preview-top-bar">
-        <view class="preview-back-btn" @click="retakePhoto">
-          <u-icon name="arrow-left" size="24" color="#fff" />
-          <text class="back-text">重新拍摄</text>
-        </view>
-        <view class="preview-confirm-btn" @click="confirmCapture">
-          <text class="confirm-text">确认使用</text>
-          <u-icon name="checkmark" size="24" color="#fff" />
-        </view>
-      </view>
-      
-      <!-- 全屏图片预览 -->
-      <view class="preview-image-container">
-        <image :src="capturedImagePath" mode="aspectFit" class="full-screen-image" />
-      </view>
-      
-      <!-- 底部提示信息 -->
-      <view class="preview-bottom-info">
-        <view class="preview-tip">
-          <u-icon name="info-circle" size="16" color="#fff" opacity="0.8" />
-          <text class="tip-text">请确认照片清晰，适合添加水印</text>
-        </view>
-      </view>
-    </view>
+    <PhotoCamera v-if="showCamera" title="拍摄照片" preview-tip="检查照片清晰且内容完整" :guide-initially-enabled="false" initial-position="back"
+      @close="showCamera = false" @select="onCameraSelect" />
 
     <!-- 原生分享按钮 - 使用open-type="share"直接触发分享 -->
     <button v-show="false" open-type="share" class="native-share-button" @getuserinfo="onShareSuccess">
@@ -372,7 +300,7 @@
     </button>
 
     <!-- 加载页面 -->
-    <LoadingOverlay :show="loading" text="AI智能处理中" tip="请稍候，正在为您处理照片" />
+    <LoadingOverlay :show="loading" text="正在添加水印" tip="请稍候，正在为您处理照片" />
   </view>
 </template>
 
@@ -381,34 +309,37 @@ import Vue from 'vue';
 import { Component } from "vue-property-decorator";
 import { addWatermark, WatermarkParams } from '@/api/watermark';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
+import PhotoCamera from '@/components/PhotoCamera.vue';
+import { writeTemporaryImage, removeTemporaryImage } from '@/utils/image-file';
 
 // 声明微信小程序类型
 declare const wx: any;
 
-@Component({ components: { LoadingOverlay } })
+@Component({ components: { LoadingOverlay, PhotoCamera } })
 export default class WatermarkPage extends Vue {
   // 按钮样式
   primaryButtonStyle = {
     width: '280rpx',
     height: '88rpx',
-    borderRadius: '44rpx',
-    fontSize: '32rpx',
-    fontWeight: 'bold',
-    boxShadow: '0 8rpx 24rpx rgba(247, 114, 97, 0.3)'
+    borderRadius: '20rpx',
+    fontSize: '30rpx',
+    fontWeight: '600',
+    boxShadow: 'none'
   };
   
   secondaryButtonStyle = {
     width: '280rpx',
     height: '88rpx',
-    borderRadius: '44rpx',
-    fontSize: '32rpx',
-    fontWeight: 'bold',
-    borderColor: '#F77261',
-    color: '#F77261'
+    borderRadius: '20rpx',
+    fontSize: '30rpx',
+    fontWeight: '600',
+    borderColor: '#cc3d35',
+    color: '#cc3d35'
   };
 
   // 本地文件地址
   imagePath: string = '';
+  preselectedImage: boolean = false;
   
   // 图片预览遮罩
   show: boolean = false;
@@ -416,14 +347,9 @@ export default class WatermarkPage extends Vue {
   // 加载动画
   loading: boolean = false;
   
-  // 相机相关状态
   showCamera: boolean = false;
-  cameraPosition: 'front' | 'back' = 'front';
-  flashMode: 'on' | 'off' = 'off';
-  capturedImagePath: string = '';
-  showCapturePreview: boolean = false;
   
-  // 水印设置 - 默认使用150 DPI减少文件大小
+  // 水印设置 - 默认使用 150 DPI 作为打印尺寸标记
   watermarkText: string = '';
   fontSize: number = 20;
   opacity: number = 50;
@@ -450,6 +376,13 @@ export default class WatermarkPage extends Vue {
     { label: '300 DPI', value: 300 },
     { label: '600 DPI', value: 600 }
   ];
+
+  onLoad(options: any) {
+    if (!options || !options.image) return;
+    try { this.imagePath = decodeURIComponent(options.image); }
+    catch (_) { this.imagePath = options.image; }
+    this.preselectedImage = !!this.imagePath;
+  }
 
   mounted() {
     // 显示分享菜单，包括分享到朋友圈
@@ -523,319 +456,38 @@ export default class WatermarkPage extends Vue {
     // #endif
   }
 
-  /**
-   * 打开相机
-   */
-  openCamera() {
-    this.showCamera = true;
-  }
-
-  /**
-   * 关闭相机
-   */
-  closeCamera() {
+  openCamera() { this.showCamera = true; }
+  onCameraSelect(path: string) {
     this.showCamera = false;
-  }
-
-  /**
-   * 切换摄像头
-   */
-  switchCamera() {
-    this.cameraPosition = this.cameraPosition === 'front' ? 'back' : 'front';
-  }
-
-  /**
-   * 切换闪光灯
-   */
-  toggleFlash() {
-    this.flashMode = this.flashMode === 'on' ? 'off' : 'on';
-  }
-
-  /**
-   * 拍照
-   */
-  capturePhoto() {
-    const cameraContext = uni.createCameraContext();
-    cameraContext.takePhoto({
-      quality: 'high',
-      success: (res) => {
-        this.capturedImagePath = res.tempImagePath;
-        this.showCamera = false;
-        this.showCapturePreview = true;
-      },
-      fail: (err) => {
-        uni.showToast({
-          title: '拍照失败',
-          icon: 'none'
-        });
-      }
-    });
-  }
-
-  /**
-   * 重新拍摄
-   */
-  retakePhoto() {
-    this.showCapturePreview = false;
-    this.openCamera();
-  }
-
-  /**
-   * 确认拍照
-   */
-  confirmCapture() {
-    this.imagePath = this.capturedImagePath;
-    this.showCapturePreview = false;
-    // 直接进行处理，不显示预览弹窗
+    this.imagePath = path;
+    this.preselectedImage = !!path;
     this.confirmSelect();
-  }
-
-  /**
-   * 相机准备就绪
-   */
-  onCameraReady() {
-    console.log('Camera ready');
   }
 
   /**
    * 确认选择
    */
   async confirmSelect() {
-    if (!this.imagePath) {
-      uni.showToast({
-        title: '请先选择图片',
-        icon: 'none'
-      });
-      return;
-    }
-
+    if (this.loading) return;
+    if (!this.imagePath) { uni.showToast({ title: '请先选择图片', icon: 'none' }); return; }
     if (!this.watermarkText.trim()) {
-      uni.showToast({
-        title: '请输入水印文字',
-        icon: 'none'
-      });
-      return;
+      uni.showToast({ title: '请输入水印文字', icon: 'none' }); return;
     }
-
     this.loading = true;
-    const prefix = 'data:image/jpeg;base64,'
-    let imageBase64 = ''
-    let imagePath = ''
-    //提交后台服务器  获取base64
-    const params: WatermarkParams = {
-      text: this.watermarkText,
-      size: this.fontSize,
-      opacity: this.opacity / 100,
-      angle: this.angle,
-      color: this.selectedColor,
-      space: this.space,
-      dpi: this.dpi
-    };
-
-    console.log('提交水印参数:', params);
-    
+    let resultPath = '';
     try {
+      const params: WatermarkParams = { text: this.watermarkText, size: this.fontSize, opacity: this.opacity / 100,
+        angle: this.angle, color: this.selectedColor, space: this.space, dpi: this.dpi };
       const data = await addWatermark(params, 'input_image', this.imagePath);
-      console.log('API返回数据:', data);
-      
-      imageBase64 = data['image_base64'];
-      console.log('获取到base64数据，长度:', imageBase64.length);
-      
-      const fs = uni.getFileSystemManager();
-      // #ifdef MP-WEIXIN
-      imagePath = `${wx.env.USER_DATA_PATH}/watermark_result.jpg`;
-      // #endif
-      console.log(imageBase64)
-      // 保存到电子照历史记录
-      this.saveToElectronicPhoto(imageBase64, '图片水印');
-      
-      console.log('准备跳转到结果页面');
-      
-      // 直接传递base64数据，避免文件存储超限问题
-      uni.navigateTo({
-        url: `/pages/watermark/result?image=${encodeURIComponent(imageBase64)}`,
-        success: () => {
-          console.log('跳转成功');
-          this.loading = false;
-        },
-        fail: (err) => {
-          console.error('跳转失败:', err);
-          this.loading = false;
-        }
-      });
-    } catch (err) {
-      console.error('水印处理失败:', err);
-      uni.showToast({
-        title: '水印处理失败，请重试',
-        icon: 'none'
-      });
-      this.loading = false;
-    }
-  }
-
-  /**
-   * 保存到电子照历史记录
-   */
-  saveToElectronicPhoto(base64Image: string, type: string) {
-    try {
-      const historyData = uni.getStorageSync('electronic_photo_history') || [];
-      const newRecord = {
-        id: Date.now(),
-        type: type,
-        image: base64Image,
-        timestamp: new Date().toISOString()
-      };
-      historyData.unshift(newRecord);
-      // 只保留最近20条记录
-      if (historyData.length > 20) {
-        historyData.splice(20);
-      }
-      uni.setStorageSync('electronic_photo_history', historyData);
-      console.log('已保存到电子照历史记录');
-    } catch (err) {
-      console.error('保存到电子照历史记录失败:', err);
-    }
-  }
-
-  /**
-   * 相机错误
-   */
-  onCameraError(err: any) {
-    console.error('Camera error:', err);
-    uni.showToast({
-      title: '相机打开失败',
-      icon: 'none'
-    });
-    this.showCamera = false;
-  }
-
-  /**
-   * 处理存储空间超限错误
-   */
-  handleStorageLimitError(imageBase64: string) {
-    try {
-      // 清理旧的临时文件
-      const fs = uni.getFileSystemManager();
-      const userDataPath = wx.env.USER_DATA_PATH;
-      
-      // 读取用户数据目录下的文件
-      fs.readdir({
-        dirPath: userDataPath,
-        success: (res) => {
-          const files = res.files || [];
-          const watermarkFiles = files.filter((file: string) => 
-            file.startsWith('watermark_') && file.endsWith('.jpg')
-          );
-          
-          // 删除旧的水印文件，只保留最新的3个
-          if (watermarkFiles.length > 3) {
-            const filesToDelete = watermarkFiles.slice(3);
-            filesToDelete.forEach((file: string) => {
-              fs.unlink({
-                filePath: `${userDataPath}/${file}`,
-                success: () => {
-                  console.log(`已删除旧文件: ${file}`);
-                },
-                fail: (err) => {
-                  console.error(`删除文件失败: ${file}`, err);
-                }
-              });
-            });
-          }
-          
-          // 重新尝试保存新文件
-          setTimeout(() => {
-            this.retrySaveWithNewName(imageBase64);
-          }, 1000);
-        },
-        fail: (err) => {
-          console.error('读取目录失败:', err);
-          this.showStorageError();
-        }
-      });
-    } catch (err) {
-      console.error('处理存储错误失败:', err);
-      this.showStorageError();
-    }
-  }
-
-  /**
-   * 使用新文件名重新保存
-   */
-  retrySaveWithNewName(imageBase64: string) {
-    const prefix = 'data:image/jpeg;base64,';
-    const fs = uni.getFileSystemManager();
-    const timestamp = Date.now();
-    const tempImagePath = `${wx.env.USER_DATA_PATH}/watermark_${timestamp}.jpg`;
-    
-    fs.writeFile({
-      filePath: tempImagePath,
-      data: imageBase64.replace(prefix, ''),
-      encoding: 'base64',
-      success: (res) => {
-        console.log(res, "重新写入本地成功");
-        this.saveToElectronicPhoto(imageBase64, '图片水印');
-        
-        uni.navigateTo({
-          url: `/pages/watermark/result?image=${encodeURIComponent(tempImagePath)}`,
-          success: () => {
-            this.loading = false;
-          }
-        });
-      },
-      fail: (err) => {
-        console.error("重新写入失败:", err);
-        this.showStorageError();
-        this.loading = false;
-      }
-    });
-  }
-
-  /**
-   * 显示存储错误提示
-   */
-  showStorageError() {
-    uni.showModal({
-      title: '存储空间不足',
-      content: '设备存储空间不足，请清理微信缓存或重启应用后重试。',
-      showCancel: false,
-      confirmText: '我知道了',
-      success: () => {
-        this.loading = false;
-      }
-    });
-  }
-
-  /**
-   * 从相册选择
-   */
-  chooseFromAlbum() {
-    // #ifdef H5
-    uni.chooseImage({
-      count: 1,
-      sourceType: ['album'],
-      success: (res) => {
-        this.imagePath = res.tempFilePaths[0];
-        this.showCamera = false;
-        // 直接进行处理，不显示预览弹窗
-        this.confirmSelect();
-      }
-    });
-    // #endif
-
-    // #ifdef MP-WEIXIN
-    uni.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album'],
-      success: (res) => {
-        this.imagePath = res.tempFiles[0].tempFilePath;
-        this.showCamera = false;
-        // 直接进行处理，不显示预览弹窗
-        this.confirmSelect();
-      }
-    });
-    // #endif
+      resultPath = await writeTemporaryImage(data.image_base64, 'watermark');
+      await new Promise<void>((resolve, reject) => uni.navigateTo({
+        url: `/pages/watermark/result?image=${encodeURIComponent(resultPath)}`,
+        success: () => resolve(), fail: () => reject(new Error('打开结果页面失败，请重试'))
+      }));
+    } catch (err: any) {
+      removeTemporaryImage(resultPath);
+      uni.showModal({ title: '处理失败', content: err.message || '图片处理失败，请重试', showCancel: false });
+    } finally { this.loading = false; }
   }
 
   /**
@@ -876,11 +528,11 @@ export default class WatermarkPage extends Vue {
 
 <style lang="scss" scoped>
 // 大师级设计变量
-$primary-color: #F77261;
+$primary-color: #cc3d35;
 $primary-light: #FF9A8B;
 $primary-dark: #E55A4A;
-$success-color: #52C41A;
-$warning-color: #FFA940;
+$success-color: #287c70;
+$warning-color: #956322;
 $text-primary: #1A1A1A;
 $text-secondary: #595959;
 $text-tertiary: #8C8C8C;
@@ -1157,20 +809,10 @@ $shadow-heavy: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
 
         ::v-deep .u--input {
           width: 100% !important;
-          z-index: -1 !important;
         }
         
-        ::v-deep .u--input__input {
-          z-index: -1 !important;
-        }
         
-        ::v-deep .u--input__content {
-          z-index: -1 !important;
-        }
         
-        ::v-deep .u--input__wrapper {
-          z-index: -1 !important;
-        }
       }
     }
   }
@@ -1300,284 +942,6 @@ $shadow-heavy: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
 .content-container > *:nth-child(2) { animation-delay: 0.2s; }
 .content-container > *:nth-child(3) { animation-delay: 0.3s; }
 
-// 相机遮罩样式
-.camera-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #000;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  
-  .camera-view {
-    flex: 1;
-    width: 100%;
-    position: relative;
-  }
-}
-
-// 拍照指引
-.photo-guide {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  width: 500rpx;
-  height: 700rpx;
-  
-  .photo-svg {
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 0 8rpx rgba(76, 175, 80, 0.3));
-    animation: photoPulse 3s infinite ease-in-out;
-  }
-}
-
-// 拍照指引动画
-@keyframes photoPulse {
-  0% {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-  100% {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-}
-
-// 相机底部控制区域
-.camera-bottom-controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0.95) 100%);
-  padding: 40rpx 32rpx calc(40rpx + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 20;
-  
-  .album-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8rpx;
-    padding: 16rpx;
-    border-radius: 16rpx;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10rpx);
-    border: 1rpx solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-    
-    &:active {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(0.95);
-    }
-    
-    .album-text {
-      color: white;
-      font-size: 22rpx;
-      font-weight: 500;
-    }
-  }
-  
-  .capture-btn-large {
-    width: 120rpx;
-    height: 120rpx;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 60rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    backdrop-filter: blur(10rpx);
-    transition: all 0.3s ease;
-    
-    &:active {
-      transform: scale(0.9);
-      background: rgba(255, 255, 255, 1);
-    }
-    
-    .capture-ring {
-      width: 100rpx;
-      height: 100rpx;
-      border: 4rpx solid rgba(247, 114, 97, 0.8);
-      border-radius: 50rpx;
-      animation: capturePulse 2s infinite ease-in-out;
-    }
-    
-    .capture-center {
-      position: absolute;
-      width: 80rpx;
-      height: 80rpx;
-      background: #F77261;
-      border-radius: 40rpx;
-      box-shadow: 0 8rpx 24rpx rgba(247, 114, 97, 0.4);
-    }
-  }
-  
-  .switch-camera-btn {
-    width: 80rpx;
-    height: 80rpx;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10rpx);
-    border: 1rpx solid rgba(255, 255, 255, 0.2);
-    border-radius: 40rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    
-    &:active {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(0.9);
-    }
-  }
-}
-
-// 拍照按钮动画
-@keyframes capturePulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-// 全屏拍照预览样式
-.full-screen-preview {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #000;
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  
-  .preview-top-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
-    padding: calc(env(safe-area-inset-top) + 32rpx) 32rpx 32rpx;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 10;
-    
-    .preview-back-btn {
-      display: flex;
-      align-items: center;
-      gap: 12rpx;
-      padding: 16rpx 24rpx;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10rpx);
-      border: 1rpx solid rgba(255, 255, 255, 0.2);
-      border-radius: 32rpx;
-      transition: all 0.3s ease;
-      
-      &:active {
-        background: rgba(255, 255, 255, 0.2);
-        transform: scale(0.95);
-      }
-      
-      .back-text {
-        color: #fff;
-        font-size: 28rpx;
-        font-weight: 600;
-      }
-    }
-    
-    .preview-confirm-btn {
-      display: flex;
-      align-items: center;
-      gap: 12rpx;
-      padding: 16rpx 24rpx;
-      background: linear-gradient(135deg, #F77261 0%, #FF9A8B 100%);
-      backdrop-filter: blur(10rpx);
-      border: 1rpx solid rgba(247, 114, 97, 0.3);
-      border-radius: 32rpx;
-      transition: all 0.3s ease;
-      box-shadow: 0 8rpx 24rpx rgba(247, 114, 97, 0.3);
-      
-      &:active {
-        background: linear-gradient(135deg, #E55A4A 0%, #F77261 100%);
-        transform: scale(0.95);
-      }
-      
-      .confirm-text {
-        color: #fff;
-        font-size: 28rpx;
-        font-weight: 600;
-      }
-    }
-  }
-  
-  .preview-image-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 120rpx 32rpx 120rpx;
-    
-    .full-screen-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 20rpx;
-    }
-  }
-  
-  .preview-bottom-info {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
-    padding: 32rpx;
-    padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
-    display: flex;
-    justify-content: center;
-    z-index: 10;
-    
-    .preview-tip {
-      display: flex;
-      align-items: center;
-      gap: 12rpx;
-      padding: 16rpx 24rpx;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10rpx);
-      border: 1rpx solid rgba(255, 255, 255, 0.2);
-      border-radius: 32rpx;
-      
-      .tip-text {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 24rpx;
-        font-weight: 500;
-      }
-    }
-  }
-}
-
 // 原生分享按钮 - 使用open-type="share"直接触发
 .native-share-button {
   position: fixed;
@@ -1587,7 +951,7 @@ $shadow-heavy: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
   z-index: 999;
   width: 100rpx;
   height: 100rpx;
-  background: linear-gradient(135deg, #F77261 0%, #FF9A8B 100%);
+  background: linear-gradient(135deg, #cc3d35 0%, #FF9A8B 100%);
   border-radius: 50rpx;
   display: flex;
   align-items: center;
@@ -1613,4 +977,9 @@ $shadow-heavy: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
     box-shadow: 0 8rpx 24rpx rgba(247, 114, 97, 0.4);
   }
 }
+
+.selected-image-action { margin-bottom: 16rpx; padding: 18rpx 24rpx; border-radius: 16rpx; background: #fff0ed; color: #a32e28; font-size: 26rpx; font-weight: 600; text-align: center; }
+
+@import '@/assets/legacy-page-themes.scss';
+@include tool-page-theme;
 </style>

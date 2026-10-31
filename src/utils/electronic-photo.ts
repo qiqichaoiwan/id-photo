@@ -232,16 +232,15 @@ export class ElectronicPhotoManager {
    */
   static save(photo: Omit<ElectronicPhoto, 'id' | 'createdAt'>): boolean {
     try {
-      console.log('开始保存电子照:', photo);
       
       // 确保base64数据格式正确
       const processedPhoto = {
         ...photo,
         hdBase64: photo.hdBase64.startsWith('data:') ? photo.hdBase64 : `data:image/png;base64,${photo.hdBase64}`,
-        sdBase64: photo.sdBase64.startsWith('data:') ? photo.sdBase64 : `data:image/png;base64,${photo.sdBase64}`
+        sdBase64: !photo.sdBase64 || photo.sdBase64 === photo.hdBase64 ? '' :
+          (photo.sdBase64.startsWith('data:') ? photo.sdBase64 : `data:image/png;base64,${photo.sdBase64}`)
       };
       
-      console.log('处理后的电子照数据:', processedPhoto);
       
       const photos = this.getAll();
       
@@ -260,15 +259,9 @@ export class ElectronicPhotoManager {
       };
 
       photos.push(newPhoto);
-      console.log('保存后的电子照列表:', photos);
       
       // 强制同步存储
       uni.setStorageSync(this.STORAGE_KEY, photos);
-      
-      // 验证存储是否成功
-      const storedPhotos = uni.getStorageSync(this.STORAGE_KEY);
-      console.log('验证存储的数据:', storedPhotos);
-      console.log('存储的数据长度:', storedPhotos ? storedPhotos.length : 0);
       
       return true;
     } catch (error) {

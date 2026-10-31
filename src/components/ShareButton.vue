@@ -33,7 +33,7 @@
           <!-- 复制链接 -->
           <view class="share-option" @click="copyLink">
             <view class="share-icon link">
-              <u-icon name="link" size="32" color="#576B95" />
+              <u-icon name="attach" size="32" color="#576B95" />
             </view>
             <text class="share-label">复制链接</text>
           </view>

@@ -47,7 +47,7 @@
     "quickapp" : {},
     "mp-weixin" : {
         "usingComponents" : true,
-        "appid" : "",
+        "appid" : "wx7db67e2346adbeca",
         "setting" : {
             "urlCheck" : true,
             "es6" : true,
@@ -57,13 +57,6 @@
             "subPackages" : true
         },
         "lazyCodeLoading" : "requiredComponents",
-        "requiredBackgroundModes": ["audio"],
-        "requiredPrivateInfos": ["getLocation"],
-        "permission" : {
-            "scope.userLocation" : {
-                "desc" : "用于提供位置服务"
-            }
-        },
         "window" : {
             "enableShareAppMessage" : true,
             "enableShareTimeline" : true

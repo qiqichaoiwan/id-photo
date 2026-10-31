@@ -15,4 +15,5 @@ export interface RequestOptions {
   gateway?: string;
   headers?: AnyObject;
   remoteUrl?: string;
+  timeout?: number;
 }

@@ -3,7 +3,7 @@
     <view class="content-container">
       <view class="header-section">
         <view class="app-icon">
-          <u-image src="/static/logo.png" width="120rpx" height="120rpx" radius="20rpx" />
+          <u-image src="/static/logo.png" width="60rpx" height="60rpx" radius="14rpx" />
         </view>
         <text class="app-title">小七快照拍用户协议</text>
         <text class="update-date">更新日期：2025年12月</text>
@@ -387,4 +387,7 @@ export default class UserAgreement extends Vue {
     box-shadow: 0 8rpx 24rpx rgba(247, 114, 97, 0.4);
   }
 }
+
+@import '@/assets/legacy-page-themes.scss';
+@include document-page-theme;
 </style>
