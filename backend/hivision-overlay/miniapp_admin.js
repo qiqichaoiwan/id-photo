@@ -5,7 +5,7 @@ if (!['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)) {
   $('access-detail').textContent = '身份验证与加密连接';
   $('footer-label').textContent = '小七快照拍 · 运营后台';
 }
-const state = { view: 'overview', settings: { refresh_seconds: 30, page_size: 20 }, page: { users: 1, orders: 1, events: 1, audit: 1 }, plans: [], service: null, timer: null };
+const state = { view: 'overview', settings: { refresh_seconds: 30, page_size: 20 }, page: { users: 1, orders: 1, refunds: 1, events: 1, audit: 1 }, plans: [], service: null, timer: null };
 const viewInfo = {
   overview: ['运营概览', '在这里查看会员、订单和服务运行情况。'],
   service: ['服务监控', '查看照片服务状态和接口运行统计。'],
@@ -17,7 +17,8 @@ const viewInfo = {
 };
 const labels = {ok:'正常', degraded:'受影响', unavailable:'不可用', unknown:'待确认', disabled:'未开放', active:'生效中', expired:'已到期', none:'未开通', pending:'确认中', paid:'已发放', closed:'已关闭', draft:'草稿', archived:'已归档', manual_review:'待人工核对', refund_failed:'退款失败', unhandled:'待处理', resolved:'已处理'};
 const routeNames = {'/idphoto':'证件照制作','/idphoto_crop':'证件照裁剪','/human_matting':'人像抠图','/convert_image':'格式转换','/add_background':'证件照换底','/generate_layout_photos':'照片排版','/watermark':'图片水印','/set_kb':'图片压缩','/auth/wechat':'微信登录','/membership/status':'会员状态','/membership/plans':'会员套餐'};
-const actionNames = {create_plan:'创建套餐',edit_plan:'编辑套餐',activate_plan:'上架套餐',adjust_member:'调整会员',resolve_refund:'核对事件',acknowledge_event:'核查事件',refresh_order:'微信查单',update_settings:'修改设置'};
+const actionNames = {create_plan:'创建套餐',edit_plan:'编辑套餐',activate_plan:'上架套餐',adjust_member:'调整会员',resolve_refund:'核对事件',update_refund_request:'处理退款申请',acknowledge_event:'核查事件',refresh_order:'微信查单',update_settings:'修改设置'};
+const refundLabels = {submitted:'待处理', processing:'处理中', closed:'已处理'};
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const badge = value => `<span class="badge ${escapeHtml(value)}">${escapeHtml(labels[value] || value || '未知')}</span>`;
 const serviceBadge = item => item?.id === 'payment' && item.state === 'unknown'
@@ -79,11 +80,12 @@ function renderOverviewService(service) {
 }
 async function loadOverview() {
   const [data, service] = await Promise.all([api('/api/overview'), api('/api/service')]); state.service = service;
-  const stats = [['累计用户',data.users,'登录过或有业务记录','♙','blue'],['有效会员',data.active_members,'当前未到期','◇','rose'],['已发放订单',data.paid_orders,'本地记录，非结算收入','✓','green'],['待核对事件',data.review_events,'需查看并人工处理','!','gold']];
+  const pendingWork = data.review_events + data.refund_requests;
+  const stats = [['累计用户',data.users,'登录过或有业务记录','♙','blue'],['有效会员',data.active_members,'当前未到期','◇','rose'],['已发放订单',data.paid_orders,'本地记录，非结算收入','✓','green'],['待处理事项',pendingWork,'申请和支付事件需人工处理','!','gold']];
   $('overview-stats').innerHTML = stats.map(item => `<article class="stat-card"><div class="stat-top"><span>${item[0]}</span><span class="stat-icon ${item[4]}">${item[3]}</span></div><div class="stat-value">${item[1]}</div><div class="stat-hint">${item[2]}</div></article>`).join('');
   $('overview-service').innerHTML = renderOverviewService(service); $('overview-service').classList.remove('loading');
-  $('overview-tasks').innerHTML = `<div class="task-row"><div class="task-copy"><strong>${data.review_events ? '有 ' + data.review_events + ' 条待核对事件' : '暂无待核对事件'}</strong><small>退款和异常支付需人工核查</small></div><button class="text-button" data-go="orders">查看 →</button></div><div class="task-row"><div class="task-copy"><strong>${data.pending_orders} 笔订单确认中</strong><small>可在订单页查询微信状态</small></div><button class="text-button" data-go="orders">查看 →</button></div><div class="task-row"><div class="task-copy"><strong>会员套餐管理</strong><small>创建、编辑并核对商品</small></div><button class="text-button" data-go="plans">前往 →</button></div>`; $('overview-tasks').classList.remove('loading');
-  updateReviewCount(data.review_events);
+  $('overview-tasks').innerHTML = `<div class="task-row"><div class="task-copy"><strong>${pendingWork ? '有 ' + pendingWork + ' 条待处理事项' : '暂无待处理事项'}</strong><small>${data.refund_requests} 条用户申请 · ${data.review_events} 条支付事件</small></div><button class="text-button" data-go="orders">查看 →</button></div><div class="task-row"><div class="task-copy"><strong>${data.pending_orders} 笔订单确认中</strong><small>可在订单页查询微信状态</small></div><button class="text-button" data-go="orders">查看 →</button></div><div class="task-row"><div class="task-copy"><strong>会员套餐管理</strong><small>创建、编辑并核对商品</small></div><button class="text-button" data-go="plans">前往 →</button></div>`; $('overview-tasks').classList.remove('loading');
+  updateReviewCount(pendingWork);
 }
 async function loadServicePage() {
   const [service, metrics] = await Promise.all([api('/api/service'), api('/api/metrics?days=7')]); state.service = service;
@@ -127,7 +129,7 @@ function editPlan(plan) {
   $('plan-form').onsubmit = async e => { e.preventDefault(); const price = $('plan-price').value.trim(); if (!/^\d{1,6}(\.\d{1,2})?$/.test(price)) { modalError(Error('请输入有效价格，最多两位小数')); return; } const [whole, decimal=''] = price.split('.'); const body = {name:$('plan-name').value,months:Number($('plan-months').value),price_fen:Number(whole)*100+Number(decimal.padEnd(2,'0')),wechat_product_id:$('plan-product').value.trim(),description:$('plan-description').value,sort_order:Number($('plan-sort').value),status:$('plan-status').value}; try { await api(plan ? '/api/plans/'+plan.id : '/api/plans',{method:plan ? 'PUT':'POST',body:JSON.stringify(body)}); $('modal').close(); toast('套餐已保存'); await loadPlans(); } catch(error) { modalError(error); } };
 }
 async function activatePlan(plan) { if (!confirm(`请确认微信后台商品 ${plan.wechat_product_id} 已发布，价格为 ${money(plan.price_fen)}。支付总开关开启后用户可购买。`)) return; await api('/api/plans/'+plan.id+'/activate',{method:'POST',body:JSON.stringify({product_id:plan.wechat_product_id,price_fen:plan.price_fen,published:true})}); toast('套餐已上架'); await loadPlans(); }
-async function loadOrdersPage() { await Promise.all([loadOrders(), loadEvents()]); }
+async function loadOrdersPage() { const [, , , overview] = await Promise.all([loadOrders(), loadRefundRequests(), loadEvents(), api('/api/overview')]); updateReviewCount(overview.review_events + overview.refund_requests); }
 async function loadOrders() {
   const data = await api('/api/orders?' + params({page:state.page.orders,page_size:state.settings.page_size,order_no:$('order-search').value.trim(),status:$('order-status').value,date_from:$('order-from').value,date_to:$('order-to').value,review:$('order-review').checked}));
   showRows('order-rows','order-empty',data.orders,o => `<tr><td class="mono">${escapeHtml(o.order_no)}</td><td>${escapeHtml(o.plan_name)}</td><td>${money(o.price_fen)}</td><td>${badge(o.status)}</td><td>${escapeHtml(dateTime(o.created_at))}</td><td>${o.review_needed ? badge('manual_review') : '—'}</td><td><button class="text-button" data-order="${escapeHtml(o.order_no)}">详情</button></td></tr>`, '没有符合条件的订单');
@@ -145,10 +147,21 @@ async function showOrder(number) {
 }
 async function loadEvents() {
   const data = await api('/api/review-events?' + params({page:state.page.events,page_size:state.settings.page_size,state:$('event-state').value}));
-  if ($('event-state').value === 'pending') updateReviewCount(data.total);
   $('event-list').classList.remove('loading'); $('event-list').innerHTML = data.events.map(e => `<div class="event-card"><div class="event-head"><strong>${escapeHtml(e.order_no || '未匹配订单')}</strong>${badge(e.state)}</div><p>${escapeHtml(e.event_type)} · ${escapeHtml(dateTime(e.created_at))}</p><p>${escapeHtml(e.details || '无补充说明')}</p>${(e.state === 'manual_review' && ['xpay_refund_notify','order_verification','xpay_goods_deliver_notify'].includes(e.event_type)) || ['refund_failed','unhandled'].includes(e.state) ? `<div class="event-actions"><button class="text-button" data-event="${escapeHtml(e.event_key)}">记录人工处理 →</button></div>` : ''}</div>`).join('') || '<div class="empty">暂无符合条件的事件</div>';
   $('event-list').querySelectorAll('[data-event]').forEach(b => b.onclick = () => reviewEvent(data.events.find(e => e.event_key === b.dataset.event)));
   paginate('event-pagination','events',data,loadEvents);
+}
+$('refund-state').onchange = () => { state.page.refunds=1; run(loadRefundRequests); };
+async function loadRefundRequests() {
+  const data = await api('/api/refund-requests?' + params({page:state.page.refunds,page_size:state.settings.page_size,state:$('refund-state').value}));
+  $('refund-list').classList.remove('loading');
+  $('refund-list').innerHTML = data.requests.map(r => `<div class="event-card"><div class="event-head"><strong>${escapeHtml(r.order_no)}</strong><span class="badge ${r.status === 'closed' ? 'closed' : 'manual_review'}">${escapeHtml(refundLabels[r.status] || r.status)}</span></div><p>${escapeHtml(r.plan_name)} · ${money(r.price_fen)} · 申请于 ${escapeHtml(dateTime(r.created_at))}</p><p>用户原因：${escapeHtml(r.reason)}</p>${r.response ? `<p>给用户的说明：${escapeHtml(r.response)}</p>` : ''}${r.status !== 'closed' ? `<div class="event-actions"><button class="text-button" data-refund="${r.id}">处理申请 →</button></div>` : ''}</div>`).join('') || '<div class="empty">暂无符合条件的退款申请</div>';
+  $('refund-list').querySelectorAll('[data-refund]').forEach(b => b.onclick = () => reviewRefundRequest(data.requests.find(r => String(r.id) === b.dataset.refund)));
+  paginate('refund-pagination','refunds',data,loadRefundRequests);
+}
+function reviewRefundRequest(request) {
+  openModal('处理用户退款申请', '请先核实支付渠道并在对应平台处理；此处只记录进度，不会发起退款或改变会员。', `<div class="modal-content"><p>订单：<span class="mono">${escapeHtml(request.order_no)}</span><br>用户原因：${escapeHtml(request.reason)}</p><p class="footnote">Apple 内购由用户向 Apple 申请；其他渠道请先在微信后台核实处理。退款完成后的会员权益按支付事件人工核对。</p><form id="refund-form"><div class="form-grid"><label class="full">申请状态<select id="refund-update-status"><option value="processing">处理中</option><option value="closed">已处理</option></select></label><label class="full">给用户的处理说明（结束申请时必填）<textarea id="refund-response" maxlength="200">${escapeHtml(request.response || '')}</textarea></label><label class="full">内部处理记录（不会显示给用户）<textarea id="refund-note" minlength="2" maxlength="200" required></textarea></label></div><p id="modal-error" class="modal-error" role="alert"></p><div class="modal-actions"><button type="submit" class="button primary">保存处理记录</button></div></form></div>`);
+  $('refund-form').onsubmit = async e => { e.preventDefault(); const body = {status:$('refund-update-status').value,response:$('refund-response').value.trim(),note:$('refund-note').value.trim()}; if (body.status === 'closed' && body.response.length < 2) { modalError(Error('结束申请时请填写给用户的处理说明')); return; } try { await api('/api/refund-requests/'+request.id+'/update',{method:'POST',body:JSON.stringify(body)}); $('modal').close(); toast('处理记录已保存'); await loadOrdersPage(); } catch(error) { modalError(error); } };
 }
 $('event-state').onchange = () => { state.page.events=1; run(loadEvents); };
 function reviewEvent(event) {

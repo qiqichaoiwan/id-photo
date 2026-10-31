@@ -6,10 +6,13 @@ import { currentToken, invalidateToken, loginToBackend } from '@/utils/auth';
 const timeout = 120000;
 
 function responseError(status: number, body: any): Error {
-  if (status === 429) return new Error('操作过于频繁，请稍后再试');
-  if (status >= 500) return new Error('服务暂不可用，请稍后再试');
-  return new Error(typeof body?.detail === 'string' ? body.detail :
-    (typeof body?.message === 'string' ? body.message : '请求失败，请稍后重试'));
+  let message = typeof body?.detail === 'string' ? body.detail :
+    (typeof body?.message === 'string' ? body.message : '请求失败，请稍后重试');
+  if (status === 429) message = '操作过于频繁，请稍后再试';
+  if (status >= 500) message = '服务暂不可用，请稍后再试';
+  const error: any = new Error(message);
+  error.statusCode = status;
+  return error;
 }
 
 function checkResponse<T>(status: number, data: any): T {

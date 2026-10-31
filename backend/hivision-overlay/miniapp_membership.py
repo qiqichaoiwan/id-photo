@@ -1,7 +1,4 @@
-"""Membership catalog and read-only entitlements for the mini-program.
-
-Purchasing is deliberately disabled until WeChat payment verification is installed.
-"""
+"""Membership catalog, entitlements and customer refund requests."""
 import os
 import sqlite3
 from contextlib import contextmanager
@@ -9,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field, validator
 
 DATA_DIR = Path(os.environ.get('IDPHOTO_DATA_DIR', Path(__file__).resolve().parent / '.miniapp_data'))
 DB_PATH = DATA_DIR / 'membership.sqlite3'
@@ -64,6 +62,14 @@ def initialize():
           event_key TEXT PRIMARY KEY, order_no TEXT, event_type TEXT NOT NULL,
           state TEXT NOT NULL, created_at TEXT NOT NULL, details TEXT NOT NULL DEFAULT ''
         );
+        CREATE TABLE IF NOT EXISTS refund_requests (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          order_no TEXT NOT NULL REFERENCES orders(order_no),
+          reason TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'submitted',
+          response TEXT NOT NULL DEFAULT '', admin_note TEXT NOT NULL DEFAULT '',
+          created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+          CHECK (status IN ('submitted', 'processing', 'closed'))
+        );
         CREATE TABLE IF NOT EXISTS admin_audit (
           id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, target TEXT NOT NULL,
           details TEXT NOT NULL, created_at TEXT NOT NULL
@@ -86,6 +92,8 @@ def initialize():
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS orders_platform_id ON orders(platform_order_id) WHERE platform_order_id IS NOT NULL')
         db.execute('CREATE INDEX IF NOT EXISTS orders_pending ON orders(status, updated_at)')
         db.execute('CREATE INDEX IF NOT EXISTS orders_subject_created ON orders(subject, created_at)')
+        db.execute("CREATE UNIQUE INDEX IF NOT EXISTS refund_requests_open_order ON refund_requests(order_no) WHERE status IN ('submitted', 'processing')")
+        db.execute('CREATE INDEX IF NOT EXISTS refund_requests_created ON refund_requests(created_at)')
         db.execute('CREATE INDEX IF NOT EXISTS adjustments_subject_created ON member_adjustments(subject, created_at)')
         db.execute("BEGIN IMMEDIATE")
         if not db.execute("SELECT 1 FROM settings WHERE key = 'catalog_initialized'").fetchone():
@@ -152,4 +160,47 @@ def order(order_no: str, request: Request):
         row = db.execute('SELECT order_no, plan_name, months, price_fen, status, created_at, expires_at, review_needed FROM orders WHERE subject = ? AND order_no = ?', (subject, order_no)).fetchone()
         if not row:
             raise HTTPException(404, '订单不存在')
-        return dict(row)
+        result = dict(row)
+        refund = db.execute('''SELECT status, response, created_at, updated_at FROM refund_requests
+                               WHERE order_no = ? ORDER BY id DESC LIMIT 1''', (order_no,)).fetchone()
+        result['refund_request'] = dict(refund) if refund else None
+        return result
+
+
+class RefundRequestInput(BaseModel):
+    reason: str = Field(min_length=2, max_length=200)
+
+    @validator('reason')
+    def reason_not_blank(cls, value):
+        value = value.strip()
+        if len(value) < 2:
+            raise ValueError('请填写退款原因')
+        return value
+
+
+@router.post('/orders/{order_no}/refund-requests')
+def request_refund(order_no: str, data: RefundRequestInput, request: Request):
+    """Record a request for human review; never initiate a payment or change membership."""
+    subject = subject_for(request)
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        row = db.execute('SELECT status FROM orders WHERE order_no = ? AND subject = ?',
+                         (order_no, subject)).fetchone()
+        if not row:
+            raise HTTPException(404, '订单不存在')
+        if row['status'] != 'paid':
+            raise HTTPException(409, '订单支付完成后才能申请退款')
+        existing = db.execute('''SELECT status, response, created_at, updated_at FROM refund_requests
+                                 WHERE order_no = ? AND status IN ('submitted', 'processing')
+                                 ORDER BY id DESC LIMIT 1''', (order_no,)).fetchone()
+        if existing:
+            return dict(existing)
+        refunded = db.execute('''SELECT 1 FROM payment_events WHERE order_no = ?
+                                 AND event_type = 'xpay_refund_notify'
+                                 AND state IN ('manual_review', 'resolved') LIMIT 1''', (order_no,)).fetchone()
+        if refunded:
+            raise HTTPException(409, '该订单的退款记录正在核对，请查看退款进度或联系商家')
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute('''INSERT INTO refund_requests(order_no, reason, created_at, updated_at)
+                      VALUES (?, ?, ?, ?)''', (order_no, data.reason, now, now))
+        return {'status': 'submitted', 'response': '', 'created_at': now, 'updated_at': now}

@@ -261,10 +261,11 @@ def overview():
         order_counts = {row['status']: row['count'] for row in
                         db.execute('SELECT status, COUNT(*) AS count FROM orders GROUP BY status')}
         reviews = db.execute("SELECT COUNT(*) FROM payment_events WHERE state IN ('manual_review', 'refund_failed', 'unhandled')").fetchone()[0]
+        refund_requests = db.execute("SELECT COUNT(*) FROM refund_requests WHERE status IN ('submitted', 'processing')").fetchone()[0]
         flagged_orders = db.execute('SELECT COUNT(*) FROM orders WHERE review_needed = 1').fetchone()[0]
     return {'users': users, 'active_members': active, 'orders': sum(order_counts.values()),
             'paid_orders': order_counts.get('paid', 0), 'pending_orders': order_counts.get('pending', 0),
-            'review_events': reviews, 'review_orders': flagged_orders}
+            'review_events': reviews, 'review_orders': flagged_orders, 'refund_requests': refund_requests}
 
 
 def probe_service(url, failure_note):
@@ -431,6 +432,45 @@ def adjust_member(user_ref: str, data: MemberAdjustmentInput):
         db.execute('INSERT INTO admin_audit(action,target,details,created_at) VALUES (?,?,?,?)',
                    ('adjust_member', user_ref, f'{previous or "无"} → {updated}；{reason}', now_iso))
     return {'user_ref': user_ref, 'expires_at': updated}
+
+
+@app.get('/api/refund-requests', dependencies=[Depends(require_admin)])
+def list_refund_requests(page: int = Query(1, ge=1, le=10000), page_size: int = Query(20, ge=1, le=100),
+                         state: Literal['pending', 'closed', 'all'] = 'pending'):
+    where = " WHERE r.status IN ('submitted', 'processing')" if state == 'pending' else (" WHERE r.status = 'closed'" if state == 'closed' else '')
+    with database() as db:
+        total = db.execute('SELECT COUNT(*) FROM refund_requests r' + where).fetchone()[0]
+        rows = db.execute('''SELECT r.id, r.order_no, r.reason, r.status, r.response, r.admin_note,
+            r.created_at, r.updated_at, o.plan_name, o.price_fen, o.status AS order_status
+            FROM refund_requests r JOIN orders o ON o.order_no = r.order_no''' + where +
+            ' ORDER BY r.id DESC LIMIT ? OFFSET ?', (page_size, (page - 1) * page_size)).fetchall()
+    return {'requests': [dict(row) for row in rows], 'total': total, 'page': page, 'page_size': page_size}
+
+
+class RefundRequestUpdate(BaseModel):
+    status: Literal['processing', 'closed']
+    response: str = Field(default='', max_length=200)
+    note: str = Field(min_length=2, max_length=200)
+
+
+@app.post('/api/refund-requests/{request_id}/update', dependencies=[Depends(require_admin)])
+def update_refund_request(request_id: int, data: RefundRequestUpdate):
+    response, note = data.response.strip(), data.note.strip()
+    if len(note) < 2 or (data.status == 'closed' and len(response) < 2):
+        raise HTTPException(400, '请填写内部处理记录；结束申请时还需填写给用户的说明')
+    now = datetime.now(timezone.utc).isoformat()
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        row = db.execute('SELECT order_no, status FROM refund_requests WHERE id = ?', (request_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, '退款申请不存在')
+        if row['status'] not in ('submitted', 'processing'):
+            raise HTTPException(409, '退款申请已处理，请刷新后查看')
+        db.execute('UPDATE refund_requests SET status = ?, response = ?, admin_note = ?, updated_at = ? WHERE id = ?',
+                   (data.status, response, note, now, request_id))
+        db.execute('INSERT INTO admin_audit(action,target,details,created_at) VALUES (?,?,?,?)',
+                   ('update_refund_request', row['order_no'], f"申请 #{request_id}；{data.status}；{note}；用户说明：{response}", now))
+    return {'ok': True}
 
 
 @app.get('/api/review-events', dependencies=[Depends(require_admin)])

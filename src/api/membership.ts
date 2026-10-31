@@ -25,6 +25,14 @@ export interface MembershipOrder {
   created_at: string;
   expires_at?: string | null;
   review_needed?: boolean;
+  refund_request?: RefundRequest | null;
+}
+
+export interface RefundRequest {
+  status: 'submitted' | 'processing' | 'closed';
+  response: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const getMembershipStatus = (): Promise<MembershipStatus> => request('/membership/status', { method: Method.GET, timeout: 8000 });
@@ -40,6 +48,8 @@ export const createMembershipOrder = (plan: MembershipPlan, code: string): Promi
   request('/membership/orders', { method: Method.POST, timeout: 20000, data: { plan_id: plan.id, price_fen: plan.price_fen, months: plan.months, code } });
 export const refreshMembershipOrder = (orderNo: string): Promise<MembershipOrder> =>
   request(`/membership/orders/${encodeURIComponent(orderNo)}/refresh`, { method: Method.POST, timeout: 20000 });
+export const requestMembershipRefund = (orderNo: string, reason: string): Promise<RefundRequest> =>
+  request(`/membership/orders/${encodeURIComponent(orderNo)}/refund-requests`, { method: Method.POST, timeout: 15000, data: { reason } });
 
 export function formatFen(value: number): string {
   return (value / 100).toFixed(2);
