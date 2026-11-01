@@ -10,7 +10,7 @@ from miniapp_membership import initialize as initialize_membership, router as me
 from miniapp_identity import get_openid, identity_key, resolve_subject
 from miniapp_payment import router as payment_router, reconcile_loop, validate_payment_config
 from miniapp_status import ServiceObservationMiddleware, router as status_router
-from miniapp_content_security import check_media, check_text
+from miniapp_content_security import check_media, check_text, enabled as content_security_enabled
 import threading
 from hivision import IDCreator
 from hivision.error import FaceError
@@ -110,6 +110,26 @@ def validate_matting_model(model):
 def require_portrait_size(image):
     if min(image.shape[:2]) < 64:
         raise HTTPException(400, "照片尺寸过小，请选择清晰照片")
+
+
+async def require_safe_watermark_text(request: Request, text: str):
+    """Check user-provided watermark text before it is rendered into a photo."""
+    try:
+        if not content_security_enabled():
+            return
+    except RuntimeError as exc:
+        raise HTTPException(503, '文本内容安全检测服务暂不可用，请稍后重试') from exc
+
+    token_subject = getattr(request.state, 'subject', None)
+    if not token_subject:
+        raise HTTPException(401, '请先登录后使用文字水印')
+    subject = await asyncio.to_thread(resolve_subject, token_subject)
+    openid = await asyncio.to_thread(get_openid, subject)
+    result = await check_text(text, openid, scene=2, subject=subject)
+    if result.get('available') is not True:
+        raise HTTPException(503, '文本内容安全检测服务暂不可用，请稍后重试')
+    if result.get('safe') is not True:
+        raise HTTPException(400, '水印文字未通过内容安全检测，请修改后重试')
 
 
 class ContentTextRequest(BaseModel):
@@ -457,6 +477,7 @@ async def generate_layout_photos(
 # 透明图像添加水印接口
 @app.post("/watermark")
 async def watermark(
+    request: Request,
     input_image: UploadFile = File(None),
     input_image_base64: str = Form(None),
     text: str = Form("Hello"),
@@ -482,6 +503,8 @@ async def watermark(
     space = space_form if space_form is not None else (space_query if space_query is not None else 25)
     if not text.strip() or len(text) > 100 or len(color) != 7 or not color.startswith('#') or any(c not in '0123456789abcdefABCDEF' for c in color[1:]):
         raise HTTPException(400, '水印文字或颜色无效')
+
+    await require_safe_watermark_text(request, text)
 
     try:
         result_image = add_watermark(img, text, size, opacity, angle, color, space)

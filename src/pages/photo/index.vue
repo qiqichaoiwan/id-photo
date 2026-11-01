@@ -25,7 +25,7 @@
       <view class="selection-card advanced-card">
         <view class="advanced-heading" @click="settingsExpanded = !settingsExpanded"><view><u-icon name="setting" size="21" color="#20242a" /><text>高级设置</text></view><u-icon :name="settingsExpanded ? 'arrow-up' : 'arrow-down'" size="16" color="#858a91" /></view>
         <view v-if="settingsExpanded" class="advanced-content">
-          <view class="advanced-row"><text>人像模型</text><picker :range="models" range-key="label" :value="modelIndex" @change="onModelChange"><text>{{ models[modelIndex].label }} ▾</text></picker></view>
+          <view class="advanced-row"><text>处理方式</text><picker :range="models" range-key="label" :value="modelIndex" @change="onModelChange"><text>{{ models[modelIndex].label }} ▾</text></picker></view>
           <view class="advanced-row"><text>人脸对齐</text><switch :checked="form.face_align" color="#cc3d35" @change="onFaceAlignChange" /></view>
           <view class="advanced-row"><text>水平翻转</text><switch :checked="form.horizontal_flip" color="#cc3d35" @change="onFlipChange" /></view>
           <view class="advanced-slider"><text>美白强度：{{ form.whitening_strength }}</text><slider :value="form.whitening_strength" :min="0" :max="15" :step="1" activeColor="#cc3d35" @change="onWhiteningChange" /></view>

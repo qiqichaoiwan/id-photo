@@ -32,8 +32,8 @@
               <u-icon name="scan" size="18" color="#356caa" />
             </view>
             <view class="feature-content">
-              <view class="feature-name">AI智能抠图</view>
-              <view class="feature-desc">精准识别人像轮廓，一键去除背景</view>
+              <view class="feature-name">人像抠图</view>
+              <view class="feature-desc">提取人物轮廓，去除照片背景</view>
             </view>
             <view class="feature-check">
               <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
@@ -45,8 +45,8 @@
               <u-icon name="grid" size="18" color="#287c70" />
             </view>
             <view class="feature-content">
-              <view class="feature-name">多精度选择</view>
-              <view class="feature-desc">支持高精度、标准版、增强版模型</view>
+              <view class="feature-name">处理效果可选</view>
+              <view class="feature-desc">支持高精度、标准和增强处理</view>
             </view>
             <view class="feature-check">
               <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
@@ -103,7 +103,7 @@
           </view>
           <view class="tip-item">
             <view class="tip-number">4</view>
-            <text class="tip-text">建议人物占画面60%以上，便于AI识别</text>
+            <text class="tip-text">建议人物占画面60%以上，便于提取人物轮廓</text>
           </view>
         </view>
       </view>

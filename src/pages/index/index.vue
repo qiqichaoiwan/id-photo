@@ -17,6 +17,7 @@
       <view v-if="searchText" class="clear-search" @click="searchText = ''"><u-icon name="close-circle" size="18" color="#999" /></view>
     </view>
     <service-status-banner :state="serviceState" />
+    <view class="scope-note"><u-icon name="lock" size="16" color="#287c70" /><text>仅提供个人图片制作与编辑，不提供公开发布或内容分发</text></view>
 
     <view v-if="!searchText" class="section">
       <view class="section-heading"><text>常用规格</text><view class="section-more" @click="showAllSizes"><text>更多</text><u-icon name="arrow-right" size="14" color="#737780" /></view></view>
@@ -162,6 +163,7 @@ export default class Index extends Vue {
 .art-card-front image { width: 100%; height: 100%; border-radius: 8rpx; }
 .search-box { display: flex; align-items: center; gap: 16rpx; height: 88rpx; padding: 0 28rpx; margin-top: -16rpx; position: relative; background: #fff; border-radius: 48rpx; box-shadow: 0 6rpx 24rpx rgba(0, 0, 0, .05); }
 .search-box input { flex: 1; font-size: 28rpx; min-width: 0; }.search-placeholder { color: #8b8f95; }.clear-search { padding: 10rpx; }
+.scope-note { display: flex; align-items: center; gap: 10rpx; margin-top: 18rpx; color: #536a68; font-size: 22rpx; line-height: 1.5; }
 .section { margin-top: 44rpx; }.section-heading { display: flex; justify-content: space-between; align-items: center; font-size: 32rpx; font-weight: 650; margin-bottom: 22rpx; }.section-more { display: flex; align-items: center; flex-shrink: 0; gap: 4rpx; white-space: nowrap; color: $muted; font-size: 24rpx; font-weight: 400; }
 .size-grid, .category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12rpx; }
 .size-tile, .category-tile { @include card; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1rpx solid $border; text-align: center; box-sizing: border-box; }

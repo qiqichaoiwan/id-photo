@@ -199,7 +199,7 @@
           <u-button size="mini" type="info" plain @click="toggleCompare">
             {{ showCompare ? '隐藏对比' : '显示对比' }}
           </u-button>
-          <u-button size="mini" type="info" plain @click="cropPhoto">智能裁剪</u-button>
+          <u-button size="mini" type="info" plain @click="cropPhoto">自动裁剪</u-button>
           <u-button size="mini" type="info" plain @click="adjustSize">调整大小</u-button>
         </view>
       </view>
@@ -329,7 +329,7 @@ export default class EnhancedEdit extends Vue {
   };
   
   watermarkParams: WatermarkParams = {
-    text: 'AI证件照',
+    text: '证件照',
     size: 20,
     opacity: 50,
     angle: 30,
@@ -594,7 +594,7 @@ export default class EnhancedEdit extends Vue {
   }
 
   /**
-   * 智能裁剪
+   * 自动裁剪
    */
   async cropPhoto() {
     try {

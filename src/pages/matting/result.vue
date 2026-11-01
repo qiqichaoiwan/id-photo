@@ -6,7 +6,7 @@
         <u-icon name="checkmark" size="24" color="#287c70" />
       </view>
       <text class="header-title">抠图完成</text>
-      <text class="header-desc">人像已智能提取，背景已移除</text>
+      <text class="header-desc">人物轮廓已提取，背景已移除</text>
     </view>
 
     <!-- 图片预览卡片 -->

@@ -62,7 +62,7 @@ declare const wx: any;
 @Component({})
 export default class ShareButton extends Vue {
   @Prop({ type: String, default: '/pages/index/index' }) sharePath!: string;
-  @Prop({ type: String, default: '小七快照拍 - 专业证件照制作' }) shareTitle!: string;
+  @Prop({ type: String, default: '小七快照拍 - 图片制作与证件照编辑' }) shareTitle!: string;
   @Prop({ type: String, default: '/static/example.jpeg' }) shareImage!: string;
   
   showSharePopup: boolean = false;
@@ -143,7 +143,7 @@ export default class ShareButton extends Vue {
         type: 0,
         href: this.getShareUrl(),
         title: this.shareTitle,
-        summary: 'AI智能证件照制作，专业规格，一键生成',
+        summary: '图片制作与证件照编辑，支持常用规格与背景处理',
         imageUrl: this.getAbsoluteImageUrl(),
         success: () => {
           uni.showToast({

@@ -278,7 +278,9 @@ def _result(
         "subject": subject or "", "errcode": errcode, "errmsg": errmsg,
         "trace_id": trace_id, "safe": data["safe"], "available": available,
         "media_type": media_type, "scene": scene,
-        "state": "pass" if data["safe"] is True else "risk" if data["safe"] is False else "unavailable",
+        "state": ("pass" if data["safe"] is True else
+                  "risk" if data["safe"] is False else
+                  "pending" if kind == "media" and available and errcode == 0 else "unavailable"),
     })
     return data
 

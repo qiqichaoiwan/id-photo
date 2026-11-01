@@ -32,8 +32,8 @@
               <u-icon name="coupon" size="18" color="#356caa" />
             </view>
             <view class="feature-content">
-              <view class="feature-name">智能抠图</view>
-              <view class="feature-desc">AI高精度人像识别</view>
+              <view class="feature-name">人像抠图</view>
+              <view class="feature-desc">高精度提取人物轮廓</view>
             </view>
             <view class="feature-check">
               <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
@@ -46,7 +46,7 @@
             </view>
             <view class="feature-content">
               <view class="feature-name">透明背景</view>
-              <view class="feature-desc">一键生成PNG透明图</view>
+              <view class="feature-desc">制作 PNG 透明底图片</view>
             </view>
             <view class="feature-check">
               <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
@@ -58,8 +58,8 @@
               <u-icon name="more-circle" size="18" color="#715a9b" />
             </view>
             <view class="feature-content">
-              <view class="feature-name">多种模型</view>
-              <view class="feature-desc">支持高精度、标准版、增强版</view>
+              <view class="feature-name">多种处理方式</view>
+              <view class="feature-desc">支持高精度、标准和增强处理</view>
             </view>
             <view class="feature-check">
               <u-icon name="checkmark-circle-fill" color="#287c70" size="16" />
@@ -92,8 +92,8 @@
                 <u-icon name="coupon" size="20" color="#cc3d35" />
               </view>
               <view class="setting-content">
-                <text class="setting-title">抠图模型</text>
-                <text class="setting-desc">选择AI处理模型</text>
+                <text class="setting-title">处理方式</text>
+                <text class="setting-desc">选择人物轮廓处理效果</text>
               </view>
             </view>
             <view class="setting-options">
@@ -236,7 +236,7 @@ export default class MattingPage extends Vue {
   selectedModel: string = 'modnet_photographic_portrait_matting';
   dpi: number = 150;
   
-  // 抠图模型选项
+  // 抠图处理方式选项
   mattingModels = [
     { label: '高精度', value: 'modnet_photographic_portrait_matting' },
     { label: '标准版', value: 'hivision_modnet' },
