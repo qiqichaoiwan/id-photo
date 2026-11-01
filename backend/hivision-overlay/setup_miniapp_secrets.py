@@ -18,6 +18,7 @@ contents = ('export WECHAT_APP_ID=wx7db67e2346adbeca\n'
             f'export WECHAT_APP_SECRET={secret}\n'
             f'export IDPHOTO_TOKEN_SECRET={secrets.token_urlsafe(48)}\n'
             'export IDPHOTO_AUTH_REQUIRED=true\n'
+            'export IDPHOTO_CONTENT_SECURITY_ENABLED=true\n'
             f'export IDPHOTO_DATA_DIR={shlex.quote(os.environ.get("IDPHOTO_DATA_DIR", str(config_dir / ".miniapp_data")))}\n'
             '# Enable only when port 8080 is reachable solely by a trusted local Cloudflare Tunnel.\n'
             'export IDPHOTO_TRUST_CLOUDFLARE=true\n')

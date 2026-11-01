@@ -16,6 +16,7 @@ ROUTES = frozenset({
     '/idphoto', '/idphoto_crop', '/human_matting', '/convert_image',
     '/add_background', '/generate_layout_photos', '/watermark', '/set_kb',
     '/auth/wechat', '/membership/status', '/membership/plans',
+    '/content-security/image', '/content-security/text', '/content-security/media',
 })
 
 

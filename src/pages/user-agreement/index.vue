@@ -6,7 +6,7 @@
           <u-image src="/static/logo.png" width="60rpx" height="60rpx" radius="14rpx" />
         </view>
         <text class="app-title">小七快照拍用户协议</text>
-        <text class="update-date">更新日期：2025年12月</text>
+        <text class="update-date">更新日期：2026年11月</text>
       </view>
 
       <scroll-view class="content-scroll" scroll-y="true">
@@ -43,6 +43,9 @@
             </text>
             <text class="section-content">
               2.3 用户不得利用本应用从事任何违法违规活动，包括但不限于制作虚假证件、侵犯他人权益等。
+            </text>
+            <text class="section-content">
+              2.4 为保障服务安全，用户上传的图片会在处理前通过微信公众平台内容安全能力识别；识别未通过或服务暂不可用时，本应用可能拒绝继续处理。
             </text>
           </view>
 

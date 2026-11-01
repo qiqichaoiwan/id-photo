@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "npm run dev:h5",
-    "dev:mp-weixin": "cross-env NODE_ENV=development UNI_PLATFORM=mp-weixin vue-cli-service uni-build --watch",
-    "build:mp-weixin": "cross-env NODE_ENV=production UNI_PLATFORM=mp-weixin vue-cli-service uni-build",
+    "dev:mp-weixin": "cross-env NODE_OPTIONS=--require=./scripts/node-legacy-util.cjs NODE_ENV=development UNI_PLATFORM=mp-weixin vue-cli-service uni-build --watch",
+    "build:mp-weixin": "cross-env NODE_OPTIONS=--require=./scripts/node-legacy-util.cjs NODE_ENV=production UNI_PLATFORM=mp-weixin vue-cli-service uni-build",
     "build": "npm run build:h5",
     "build:app-plus": "cross-env NODE_ENV=production UNI_PLATFORM=app-plus vue-cli-service uni-build",
     "build:custom": "cross-env NODE_ENV=production uniapp-cli custom",

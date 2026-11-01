@@ -1,6 +1,7 @@
 """Security boundary for the WeChat mini-program API (single-process deployment)."""
 import asyncio
 import base64
+import contextvars
 import hashlib
 import hmac
 import io
@@ -17,10 +18,14 @@ from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field
 from starlette.responses import JSONResponse
 
+from miniapp_content_security import check_image, security_error
+
 MAX_IMAGE_BYTES = 20 * 1024 * 1024
 MAX_BODY_BYTES = 28 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
 TOKEN_LIFETIME = 3600
+
+_request_subject = contextvars.ContextVar('miniapp_request_subject', default=None)
 
 
 def auth_enabled():
@@ -105,6 +110,11 @@ async def wechat_login(data: LoginRequest):
 
 
 async def read_image(upload: UploadFile, encoded: str, mode=cv2.IMREAD_COLOR):
+    image, _ = await read_image_with_security(upload, encoded, mode)
+    return image
+
+
+async def _read_image_bytes(upload: UploadFile, encoded: str):
     if encoded:
         try:
             raw = encoded.split(',', 1)[1] if encoded.startswith('data:image/') else encoded
@@ -119,6 +129,10 @@ async def read_image(upload: UploadFile, encoded: str, mode=cv2.IMREAD_COLOR):
         raise HTTPException(400, '请选择图片')
     if len(image_bytes) > MAX_IMAGE_BYTES:
         raise HTTPException(413, '图片不能超过20MB')
+    return image_bytes
+
+
+def _decode_image(image_bytes, mode):
     try:
         with Image.open(io.BytesIO(image_bytes)) as image:
             if image.format not in ('JPEG', 'PNG', 'WEBP'):
@@ -133,6 +147,28 @@ async def read_image(upload: UploadFile, encoded: str, mode=cv2.IMREAD_COLOR):
         return decoded
     except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
         raise HTTPException(400, '图片无效或已损坏')
+
+
+async def read_image_with_security(upload: UploadFile, encoded: str, mode=cv2.IMREAD_COLOR):
+    """Read, validate and check an uploaded image before any inference."""
+    image_bytes = await _read_image_bytes(upload, encoded)
+    decoded = _decode_image(image_bytes, mode)
+    result = await check_image(image_bytes, _request_subject.get())
+    if result.get('safe') is not True:
+        raise security_error(result)
+    return decoded, result
+
+
+async def audit_image(upload: UploadFile, encoded: str, mode=cv2.IMREAD_UNCHANGED):
+    """Validate an image and return its safety result without fail-closed blocking.
+
+    This is used only by the review/demo endpoint.  Production processing
+    routes must continue to use :func:`read_image_with_security`, which rejects
+    a risky or unavailable check before inference.
+    """
+    image_bytes = await _read_image_bytes(upload, encoded)
+    _decode_image(image_bytes, mode)
+    return await check_image(image_bytes, _request_subject.get())
 
 
 class SecurityMiddleware:
@@ -200,4 +236,8 @@ class SecurityMiddleware:
                 return await receive()
             delivered = True
             return {'type': 'http.request', 'body': body, 'more_body': False}
-        return await self.app(scope, replay, send)
+        subject_token = _request_subject.set(subject)
+        try:
+            return await self.app(scope, replay, send)
+        finally:
+            _request_subject.reset(subject_token)

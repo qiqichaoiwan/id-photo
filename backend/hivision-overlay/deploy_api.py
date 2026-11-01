@@ -1,13 +1,16 @@
-from fastapi import FastAPI, UploadFile, Form, File, Query, HTTPException
+from fastapi import FastAPI, UploadFile, Form, File, Query, HTTPException, Request
 from typing import Optional
 import asyncio
+import inspect
 from contextlib import asynccontextmanager
 from pathlib import Path
-from miniapp_security import SecurityMiddleware, read_image, validate_config, wechat_login
+from pydantic import BaseModel, Field
+from miniapp_security import SecurityMiddleware, audit_image, read_image, read_image_with_security, validate_config, wechat_login
 from miniapp_membership import initialize as initialize_membership, router as membership_router
-from miniapp_identity import identity_key
+from miniapp_identity import get_openid, identity_key, resolve_subject
 from miniapp_payment import router as payment_router, reconcile_loop, validate_payment_config
 from miniapp_status import ServiceObservationMiddleware, router as status_router
+from miniapp_content_security import check_media, check_text
 import threading
 from hivision import IDCreator
 from hivision.error import FaceError
@@ -31,10 +34,37 @@ import numpy as np
 import cv2
 from starlette.middleware.cors import CORSMiddleware
 from starlette.formparsers import MultiPartParser
+from starlette.requests import Request as StarletteRequest
 
 # Base64 form fields may be larger than the encoded image. The middleware
 # limits the complete body; read_image separately validates the decoded image.
 MultiPartParser.max_part_size = 28 * 1024 * 1024
+
+# Starlette 0.52+ takes max_part_size as a keyword-only default on Request
+# rather than reading MultiPartParser.max_part_size. FastAPI's generated
+# UploadFile dependency calls request.form() without an override, so adjust
+# that default to the same bounded request limit. Explicit caller limits are
+# preserved. This keeps normal camera originals from being rejected at 1 MB
+# before our image validation and content-safety check run.
+_request_get_form = StarletteRequest._get_form
+_request_get_form_parameters = inspect.signature(_request_get_form).parameters
+
+
+async def _get_form_with_image_limit(self, *, max_files=1000, max_fields=1000, max_part_size=28 * 1024 * 1024):
+    options = {
+        'max_files': max_files,
+        'max_fields': max_fields,
+        'max_part_size': max_part_size,
+    }
+    # FastAPI 0.110 can resolve to older Starlette releases whose Request
+    # parser does not expose max_part_size. Only pass parameters supported by
+    # the installed version; the class-level parser limit above covers those
+    # releases without the newer keyword.
+    options = {key: value for key, value in options.items() if key in _request_get_form_parameters}
+    return await _request_get_form(self, **options)
+
+
+StarletteRequest._get_form = _get_form_with_image_limit
 
 @asynccontextmanager
 async def lifespan(app):
@@ -81,6 +111,18 @@ def require_portrait_size(image):
         raise HTTPException(400, "照片尺寸过小，请选择清晰照片")
 
 
+class ContentTextRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=2500)
+    scene: int = Field(default=2, ge=1, le=4)
+    title: str = Field(default='', max_length=100)
+
+
+class ContentMediaRequest(BaseModel):
+    media_url: str = Field(min_length=10, max_length=2048)
+    media_type: int = Field(default=2, ge=1, le=2)
+    scene: int = Field(default=4, ge=1, le=4)
+
+
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(ServiceObservationMiddleware)
 app.post("/auth/wechat")(wechat_login)
@@ -91,6 +133,49 @@ app.include_router(status_router)
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/content-security/image")
+async def content_security_image(
+    input_image: UploadFile = File(None),
+    input_image_base64: str = Form(None),
+):
+    """Visible verification endpoint used by the audit/review flow.
+
+    The same check is performed automatically by every image-processing route;
+    this endpoint only exposes the metadata needed for a review recording.
+    """
+    return await audit_image(input_image, input_image_base64, cv2.IMREAD_UNCHANGED)
+
+
+@app.post("/content-security/text")
+async def content_security_text(request: Request, data: ContentTextRequest):
+    subject = await asyncio.to_thread(resolve_subject, request.state.subject)
+    openid = await asyncio.to_thread(get_openid, subject)
+    result = await check_text(
+        data.content, openid, scene=data.scene,
+        title=data.title, subject=subject,
+    )
+    if result.get('available') is not True:
+        raise HTTPException(503, '文本内容安全检测服务暂不可用，请稍后重试')
+    if result.get('safe') is not True:
+        raise HTTPException(400, '文本未通过内容安全检测，请修改后重试')
+    return result
+
+
+@app.post("/content-security/media")
+async def content_security_media(request: Request, data: ContentMediaRequest):
+    subject = await asyncio.to_thread(resolve_subject, request.state.subject)
+    openid = await asyncio.to_thread(get_openid, subject)
+    result = await check_media(
+        data.media_url, openid, media_type=data.media_type,
+        scene=data.scene, subject=subject,
+    )
+    if result.get('available') is not True:
+        raise HTTPException(503, '媒体内容安全检测服务暂不可用，请稍后重试')
+    if result.get('accepted') is not True:
+        raise HTTPException(502, '微信未接受媒体内容安全检测任务，请稍后重试')
+    return result
 
 
 # 添加 CORS 中间件 解决跨域问题

@@ -32,3 +32,15 @@ $shadow-card: 0 4rpx 18rpx rgba(36, 39, 45, .035);
   font-size: 30rpx;
   font-weight: 600;
 }
+
+@mixin secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 84rpx;
+  border-radius: 18rpx;
+  background: $teal-soft;
+  color: $teal;
+  font-size: 28rpx;
+  font-weight: 600;
+}

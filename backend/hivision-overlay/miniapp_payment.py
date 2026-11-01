@@ -448,6 +448,12 @@ async def receive_push(request: Request, background_tasks: BackgroundTasks, time
         reply = {'ErrCode': 0, 'ErrMsg': 'success', 'IosRefundQueryResponse': {
             'result_code': 0, 'result_info': '建议退款', 'evidence': '商家对会员退款申请采取默认建议同意的处理规则，退款结果以 Apple 最终决定为准。'}}
         return JSONResponse(encrypt_reply(reply, timestamp, nonce))
+    elif event_type == 'wxa_media_check':
+        # Content safety callbacks share the configured WeChat push endpoint.
+        # Keep only the verdict metadata; media URLs and user identifiers are
+        # deliberately not persisted by the content-safety module.
+        from miniapp_content_security import record_media_event
+        await asyncio.to_thread(record_media_event, event)
     else:
         await asyncio.to_thread(event_record, event, order_no, 'unhandled')
     return PlainTextResponse('success')

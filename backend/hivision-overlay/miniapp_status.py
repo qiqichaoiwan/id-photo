@@ -18,6 +18,7 @@ from hivision.creator.human_matting import WEIGHTS
 from miniapp_membership import DB_PATH
 from miniapp_payment import payment_enabled, validate_payment_config
 from miniapp_telemetry import writer as metrics_writer
+from miniapp_content_security import configuration_state
 
 router = APIRouter()
 FAILURE_WINDOW_SECONDS = 300
@@ -27,6 +28,8 @@ TRACKED_PATHS = {
     '/generate_layout_photos': 'tools', '/watermark': 'tools', '/set_kb': 'tools',
     '/auth/wechat': 'login', '/membership/status': 'membership',
     '/membership/plans': 'membership', '/membership/orders': 'payment',
+    '/content-security/image': 'content_security', '/content-security/text': 'content_security',
+    '/content-security/media': 'content_security',
 }
 
 
@@ -140,6 +143,9 @@ def status_snapshot(sandbox=False):
     optional_models_ready = all(Path(WEIGHTS[name]).is_file() for name in ('birefnet-v1-lite', 'hivision_modnet', 'modnet_photographic_portrait_matting'))
     database_ready = membership_database_ready()
     payment_state, payment_detail = payment_check(database_ready, recent)
+    security_state, security_detail = configuration_state()
+    if 'content_security' in recent and security_state == 'ok':
+        security_state, security_detail = 'degraded', '近期内容安全检测出现异常，请稍后重试'
     checks = [
         {'id': 'connection', 'name': '服务连接', 'state': 'ok', 'detail': '已连接到照片服务'},
         {'id': 'photo', 'name': '证件照制作',
@@ -162,6 +168,7 @@ def status_snapshot(sandbox=False):
          'detail': ('会员数据暂不可用' if not database_ready else
                     '近期查询出现异常，请稍后重试' if 'membership' in recent else '会员数据可读取')},
         {'id': 'payment', 'name': '会员购买', 'state': payment_state, 'detail': payment_detail},
+        {'id': 'content-security', 'name': '内容安全检测', 'state': security_state, 'detail': security_detail},
     ]
     if sandbox:
         for item in checks:

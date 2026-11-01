@@ -16,6 +16,16 @@
       </view>
     </view>
     <view class="explanation">{{ snapshot && connection === 'online' ? snapshot.note : connection === 'offline' ? '无法连接可能与手机网络、服务繁忙或服务器离线有关。请检查网络后重试。' : '正在获取最新的服务状态。' }}</view>
+    <view class="security-card">
+      <view class="security-heading"><view><view class="security-title">内容安全检测</view><view class="security-subtitle">上传一张照片，查看微信接口真实返回值</view></view><u-icon name="shield" size="25" color="#287c70" /></view>
+      <view v-if="securityResult" class="security-result" :class="securityResult.safe === true ? 'pass' : securityResult.available ? 'risk' : 'unavailable'">
+        <view class="result-title">{{ securityResult.safe === true ? '检测通过' : securityResult.available ? '检测未通过' : '检测服务暂不可用' }}</view>
+        <view class="result-line">errcode：{{ securityResult.errcode }}　{{ securityResult.errmsg }}</view>
+        <view v-if="securityResult.trace_id" class="result-line">trace_id：{{ securityResult.trace_id }}</view>
+        <view class="result-line hash">文件摘要：{{ securityResult.sha256 }}</view>
+      </view>
+      <view class="security-action" :class="{ disabled: securityChecking }" @click="verifyImage">{{ securityChecking ? '正在检测…' : '上传照片并验证' }}</view>
+    </view>
     <view class="refresh" role="button" @click="refresh">{{ refreshing ? '正在检查…' : '重新检查' }}</view>
   </view>
 </template>
@@ -25,6 +35,7 @@ import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import { fetchServiceStatus, ServiceSnapshot, CheckState } from '@/api/service-status';
 import { formatMemberDate } from '@/api/membership';
+import { checkImageSecurity, ContentSecurityResult } from '@/api/content-security';
 
 @Component({})
 export default class StatusPage extends Vue {
@@ -33,6 +44,8 @@ export default class StatusPage extends Vue {
   refreshing = false;
   sequence = 0;
   timer: any = null;
+  securityChecking = false;
+  securityResult: ContentSecurityResult | null = null;
   get displayState() { return this.connection === 'online' && this.snapshot ? this.snapshot.status : this.connection; }
   get summaryTitle() { return ({ checking:'正在检查服务', ok:'服务连接正常', degraded:'部分服务可能受影响', offline:'暂时无法连接服务' } as any)[this.displayState]; }
   get summaryDetail() { return ({ checking:'正在获取最新状态', ok:'基础检查已完成', degraded:'请查看下方具体状态，稍后可再次检查', offline:'请检查网络或稍后重试' } as any)[this.displayState]; }
@@ -42,6 +55,24 @@ export default class StatusPage extends Vue {
   onHide() { this.stop(); }
   onUnload() { this.stop(); }
   stop() { if (this.timer) clearInterval(this.timer); this.timer = null; this.sequence++; this.refreshing = false; }
+  verifyImage() {
+    if (this.securityChecking) return;
+    uni.chooseImage({ count: 1, sizeType: ['compressed', 'original'], sourceType: ['album', 'camera'], success: async (result: any) => {
+      const path = result.tempFilePaths && result.tempFilePaths[0];
+      if (!path) return;
+      this.securityChecking = true;
+      uni.showLoading({ title: '检测中…', mask: true });
+      try {
+        this.securityResult = await checkImageSecurity(path);
+        uni.showToast({ title: this.securityResult.safe === true ? '检测通过' : this.securityResult.available ? '检测未通过' : '服务暂不可用', icon: this.securityResult.safe === true ? 'success' : 'none' });
+      } catch (error: any) {
+        uni.showModal({ title: '检测失败', content: error.message || '内容安全服务暂不可用，请稍后重试', showCancel: false });
+      } finally {
+        uni.hideLoading();
+        this.securityChecking = false;
+      }
+    } });
+  }
   async refresh() {
     if (this.refreshing) return;
     const sequence = ++this.sequence; this.refreshing = true;
@@ -59,4 +90,5 @@ export default class StatusPage extends Vue {
 .summary { padding:28rpx; border-radius:24rpx; background:$teal-soft; }.summary.degraded { background:$amber-soft; }.summary.offline { background:$brand-soft; }.summary.checking { background:$blue-soft; }.summary-top { display:flex; align-items:center; gap:14rpx; font-size:31rpx; font-weight:650; }.dot { width:16rpx; height:16rpx; border-radius:50%; background:$teal; }.degraded .dot { background:$amber; }.offline .dot { background:$brand; }.checking .dot { background:$blue; }.summary-detail,.time { color:$muted; font-size:24rpx; margin-top:12rpx; line-height:1.5; }
 .check-list { @include card; margin-top:24rpx; padding:0 28rpx; }.check-row { display:flex; justify-content:space-between; align-items:center; gap:20rpx; padding:26rpx 0; border-bottom:1rpx solid $border; }.check-row:last-child { border:0; }.check-copy { flex:1; min-width:0; }.check-name { font-size:28rpx; font-weight:600; }.check-detail { font-size:23rpx; line-height:1.5; color:$muted; margin-top:7rpx; }.check-state { flex-shrink:0; font-size:22rpx; color:$teal; }.check-state.degraded { color:$amber; }.check-state.unavailable { color:$brand; }.check-state.disabled,.check-state.unknown { color:$muted; }
 .explanation { color:$muted; font-size:23rpx; line-height:1.7; margin:24rpx 6rpx; }.refresh { @include primary-button; margin-top:26rpx; }
+.security-card { @include card; margin-top:24rpx; padding:28rpx; }.security-heading { display:flex; align-items:center; justify-content:space-between; gap:18rpx; }.security-title { font-size:29rpx; font-weight:650; }.security-subtitle { color:$muted; font-size:22rpx; margin-top:8rpx; }.security-result { margin-top:20rpx; padding:20rpx; border-radius:16rpx; background:$teal-soft; }.security-result.risk { background:$brand-soft; }.security-result.unavailable { background:$amber-soft; }.result-title { font-size:26rpx; font-weight:650; }.result-line { color:$muted; font-size:21rpx; line-height:1.6; margin-top:6rpx; word-break:break-all; }.hash { color:#8b9399; }.security-action { @include secondary-button; margin-top:20rpx; text-align:center; }.security-action.disabled { opacity:.55; }
 </style>

@@ -29,6 +29,23 @@ cd backend
 
 `start-all.sh` 启动图片 API（8080）、支付消息接收（8092）和会员后台（8091），默认只监听本机；日志写入 `.runtime/logs/`。`start-gradio.sh` 启动完整 HivisionIDPhotos Gradio 界面（7860）。沙箱使用 `start_miniapp_sandbox.sh` 和独立配置、数据库，不能把沙箱商品用于现网。
 
+## 内容安全检查
+
+图片处理接口会在 Hivision 推理前调用微信小程序内容安全接口
+`wxa/img_sec_check`（[微信内容安全文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/sec-check/security.imgSecCheck.html)）。图片只在内存中转发给微信，服务器仅保存 SHA-256、错误码、
+`trace_id` 和时间等审计元数据。服务端使用已经配置的 `WECHAT_APP_ID` 和
+`WECHAT_APP_SECRET` 获取 `access_token`，密钥不会进入小程序包或日志。
+审计日志位于数据目录的 `content_security/`，单个文件最多 5 MB 并保留两个轮转文件。
+
+审核演示可在小程序“服务状态”页点击“上传照片并验证”，页面会显示微信返回的
+`errcode`、`errmsg`、`trace_id` 和文件摘要，便于按平台要求录屏。后端同时提供
+`/content-security/text`（`msg_sec_check`，见[官方文档](https://developers.weixin.qq.com/miniprogram/dev/server/API/sec-center/sec-check/api_msgseccheck.html)）和 `/content-security/media`
+（`media_check_async`，见[官方文档](https://developers.weixin.qq.com/miniprogram/dev/server/API/sec-center/sec-check/api_mediacheckasync.html)）接口；媒体异步结果由现有微信消息推送入口接收并只记录判定元数据。
+
+内容安全默认开启。只有在本地离线开发且明确接受不调用微信接口时，才可在未提交生产
+配置的环境中设置 `IDPHOTO_CONTENT_SECURITY_ENABLED=false`；生产和审核环境应保持为
+`true`。
+
 如果只需要单独启动服务，可执行：
 
 ```sh

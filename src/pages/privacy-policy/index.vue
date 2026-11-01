@@ -16,6 +16,10 @@
             <text class="section-content">选择或拍摄照片后，照片会通过网络发送至证件照处理服务，以完成人像抠图、证件照制作或水印处理。处理结果会返回您的设备。</text>
           </view>
           <view class="section-block">
+            <text class="section-title">内容安全识别</text>
+            <text class="section-content">为遵守平台内容安全要求，上传的照片会在处理前调用微信公众平台内容安全接口进行识别。原始照片只用于本次检查和照片处理，服务端不保存原图；仅保留检测时间、文件摘要、错误码和检测编号等必要的审计信息。</text>
+          </view>
+          <view class="section-block">
             <text class="section-title">本地保存</text>
             <text class="section-content">处理过程中会在小程序本地生成临时图片。您选择保存到电子照时，照片会保存在本设备的小程序存储中；保存到相册需要您的授权。</text>
             <text class="section-content">您可以在“我的 → 清理本地照片”删除小程序内的电子照、历史记录和临时图片。已保存到手机相册的照片请在相册中删除。</text>
