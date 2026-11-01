@@ -35,6 +35,7 @@ import cv2
 from starlette.middleware.cors import CORSMiddleware
 from starlette.formparsers import MultiPartParser
 from starlette.requests import Request as StarletteRequest
+from starlette.responses import Response
 
 # Base64 form fields may be larger than the encoded image. The middleware
 # limits the complete body; read_image separately validates the decoded image.
@@ -133,6 +134,23 @@ app.include_router(status_router)
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# A fixed, non-user image gives the reviewer a safe public URL for the
+# media_check_async example. It contains no uploaded content and is never
+# written to the membership or photo data directories.
+CONTENT_SECURITY_DEMO_MEDIA = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+)
+
+
+@app.get("/content-security/demo-media", include_in_schema=False)
+def content_security_demo_media():
+    return Response(
+        content=CONTENT_SECURITY_DEMO_MEDIA,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=300"},
+    )
 
 
 @app.post("/content-security/image")

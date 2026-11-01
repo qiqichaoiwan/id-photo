@@ -27,6 +27,14 @@ TOKEN_LIFETIME = 3600
 
 _request_subject = contextvars.ContextVar('miniapp_request_subject', default=None)
 
+# These routes are intentionally public: health/status are read-only, the
+# payment callback verifies its own WeChat signature, and the demo media is a
+# fixed one-pixel image used only as the media_check_async review example.
+PUBLIC_PATHS = frozenset({
+    '/health', '/service-status', '/auth/wechat', '/payment/notify',
+    '/content-security/demo-media',
+})
+
 
 def auth_enabled():
     value = os.environ.get('IDPHOTO_AUTH_REQUIRED', 'true').lower()
@@ -186,7 +194,7 @@ class SecurityMiddleware:
         if os.environ.get('IDPHOTO_TRUST_CLOUDFLARE', 'false').lower() == 'true' and ip in ('127.0.0.1', '::1'):
             ip = headers.get(b'cf-connecting-ip', b'').decode('ascii', 'ignore')[:64] or ip
         subject = None
-        if auth_enabled() and path not in ('/health', '/service-status', '/auth/wechat', '/payment/notify'):
+        if auth_enabled() and path not in PUBLIC_PATHS:
             auth = headers.get(b'authorization', b'').decode('ascii', 'ignore')
             subject = verify_token(auth[7:]) if auth.startswith('Bearer ') else None
             if not subject:

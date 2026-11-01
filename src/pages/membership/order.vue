@@ -2,7 +2,7 @@
   <view class="page">
     <InlineState v-if="loading && !order" kind="loading" title="正在查询订单" description="请稍候" />
     <view v-else-if="!order">
-      <InlineState kind="error" title="订单暂不可用" :description="error" :action-text="invalidOrderNo ? '查看购买记录' : '重新查询'" @action="retry" />
+      <InlineState kind="error" title="订单暂不可用" :description="error" :action-text="retryActionText" @action="retry" />
       <view v-if="!invalidOrderNo" class="link" @click="goOrders">返回购买记录</view>
     </view>
     <template v-else>
@@ -61,6 +61,7 @@ export default class Order extends Vue {
   reason = '';
 
   get invalidOrderNo() { return !this.orderNo || this.orderNo === 'undefined' || this.orderNo === 'null'; }
+  get retryActionText() { return this.invalidOrderNo ? '查看购买记录' : '重新查询'; }
   onLoad(options: any) { this.orderNo = typeof options.order_no === 'string' ? options.order_no : ''; this.load(); }
   onShow() { if (this.order && !this.loading) this.load(); }
   async load() {
