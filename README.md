@@ -1,374 +1,214 @@
 <div align="center">
 
-# 📷 小七快照拍
+# 小七快照拍
 
-**一款基于 AI 的智能证件照制作微信小程序**
+**证件照制作、图片处理与会员运营的一体化微信小程序**
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![UniApp](https://img.shields.io/badge/UniApp-2.x-green.svg)](https://uniapp.dcloud.io/)
-[![Vue](https://img.shields.io/badge/Vue-2.6-brightgreen.svg)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-4.x-blue.svg)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![uni-app](https://img.shields.io/badge/uni--app-2.x-2b9939.svg)](https://uniapp.dcloud.io/)
+[![Vue](https://img.shields.io/badge/Vue-2.6-42b883.svg)](https://v2.vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.x-3178c6.svg)](https://www.typescriptlang.org/)
 
-[功能介绍](#-功能特性) • [快速开始](#-快速开始) • [项目结构](#-项目结构) • [部署指南](#-部署指南) • [常见问题](#-常见问题)
+[界面展示](#界面展示) · [功能介绍](#功能介绍) · [快速开始](#快速开始) · [管理后台](#管理后台) · [项目结构](#项目结构)
 
 </div>
 
 ---
 
-## 📖 项目简介
+## 项目简介
 
-**小七快照拍** 是一款基于 [HivisionIDPhotos](https://github.com/Zeyi-Lin/HivisionIDPhotos) 开源算法的智能证件照制作微信小程序。通过 AI 技术实现人像智能抠图、背景替换、证件照生成等功能，让用户在手机上就能轻松制作标准证件照。
+小七快照拍是一个面向个人用户的照片制作工具。用户可以选择证件照规格，通过拍摄或相册导入照片，完成裁剪、背景处理、排版、水印、格式转换和压缩。
 
-### 🎯 为什么选择小七快照拍？
+仓库包含微信小程序、基于 [HivisionIDPhotos](https://github.com/Zeyi-Lin/HivisionIDPhotos) 的图片处理服务，以及会员、支付和运营管理后台。项目用于个人图片制作与编辑，不提供用户内容公开发布、社区互动或内容分发。
 
-- **🤖 AI 智能抠图** - 基于深度学习的人像分割算法，精准识别人物轮廓
-- **� 标准规格** - 内置多种标准证件照尺寸，满足各类证件需求
-- **🎨 多彩背景** - 支持白、蓝、红等多种标准背景色一键切换
-- **📱 便捷操作** - 无需专业技能，拍照即可生成专业证件照
-- **💰 完全免费** - 开源项目，可自行部署使用
+## 界面展示
 
-## ✨ 功能特性
-
-### 🎫 证件照制作
-
-- ✅ 支持一寸、二寸、小一寸、小二寸等标准规格
-- ✅ 自定义证件照尺寸（宽度、高度、DPI）
-- ✅ 智能人像抠图与背景替换
-- ✅ 8种常用背景色（白、蓝、红、浅蓝、灰、深红、深蓝、粉色）
-- ✅ 高清/标清双模式输出
-- ✅ 六寸排版照生成（用于冲印）
-
-### 🖼️ 图像处理
-
-- ✅ **人像抠图** - AI 智能分离人物与背景，输出透明底PNG
-- ✅ **图片水印** - 添加自定义文字水印，支持调节大小、透明度、角度
-- ✅ **图像压缩** - 智能调整文件大小，满足各平台上传要求
-- ✅ **内容安全识别** - 图片处理前调用微信内容安全接口，服务状态页可查看真实检测结果
-- ✅ **审核演示流程** - 服务状态页提供 `imgSecCheck`、`msgSecCheck`、`mediaCheckAsync` 三项可录屏验证入口
-
-### 📋 其他功能
-
-- ✅ 电子照管理 - 保存常用证件照，方便随时使用
-- ✅ 激励视频广告 - 支持微信激励广告变现
-- ✅ 分享功能 - 支持分享到好友和朋友圈
-
-## 🖥️ 效果预览
-
-<div align="center">
 <table>
-<tr>
-<td align="center"><b>首页</b></td>
-<td align="center"><b>电子照</b></td>
-<td align="center"><b>证件照编辑</b></td>
-<td align="center"><b>人像抠图</b></td>
-<td align="center"><b>图片加水印</b></td>
-<td align="center"><b>个人中心</b></td>
-</tr>
-<tr>
-<td><img src="docs/screenshots/home.jpg" width="200"/></td>
-<td><img src="docs/screenshots/photo.jpg" width="200"/></td>
-<td><img src="docs/screenshots/edit.jpg" width="200"/></td>
-<td><img src="docs/screenshots/matting.jpg" width="200"/></td>
-<td><img src="docs/screenshots/watermark.jpg" width="200"/></td>
-<td><img src="docs/screenshots/mine.jpg" width="200"/></td>
-</tr>
+  <tr>
+    <td align="center"><b>首页与规格选择</b></td>
+    <td align="center"><b>证件照编辑</b></td>
+    <td align="center"><b>人像抠图</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/readme/home.png" alt="首页与证件照规格选择" width="250" /></td>
+    <td><img src="docs/ui-audit-2026-10-31/photo-edit.png" alt="证件照背景与输出方式编辑" width="250" /></td>
+    <td><img src="docs/readme/matting.png" alt="人像抠图设置" width="250" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>格式转换与压缩</b></td>
+    <td align="center"><b>文字水印</b></td>
+    <td align="center"><b>服务状态</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/ui-audit-2026-10-31/convert.png" alt="图片格式与大小调整" width="250" /></td>
+    <td><img src="docs/ui-audit-2026-10-31/watermark.png" alt="图片文字水印设置" width="250" /></td>
+    <td><img src="docs/readme/status.png" alt="照片服务和会员服务状态" width="250" /></td>
+  </tr>
 </table>
-</div>
 
-> 📸 截图待补充，欢迎提交 PR
+截图来自微信开发者工具中的开发版，部分页面使用项目自带示例人像。套餐、服务状态和页面显示以实际部署为准；开发版界面不代表已通过微信审核或正式发布。
 
-## 🛠️ 技术栈
+## 功能介绍
 
-| 技术                                            | 说明       | 版本     |
-| --------------------------------------------- | -------- | ------ |
-| [UniApp](https://uniapp.dcloud.io/)           | 跨平台开发框架  | 2.x    |
-| [Vue.js](https://vuejs.org/)                  | 前端框架     | 2.6.x  |
-| [TypeScript](https://www.typescriptlang.org/) | 类型安全     | 4.x    |
-| [Vuex](https://vuex.vuejs.org/)               | 状态管理     | 3.x    |
-| [uView UI](https://www.uviewui.com/)          | UI 组件库   | 2.0.36 |
-| [Sass/SCSS](https://sass-lang.com/)           | CSS 预处理器 | -      |
+### 照片制作与图片工具
 
-### 后端服务
+- **证件照制作**：选择常用规格或自定义尺寸，支持人像分割、背景替换、电子照和打印排版照。
+- **拍摄辅助**：统一的拍摄界面提供可开关的人像和眼部参考线，支持前后摄像头切换、预览和重拍。
+- **人像抠图**：提取人物轮廓，支持不同处理方式并输出透明背景图片。
+- **文字水印**：自定义文字、颜色、大小、透明度、角度和间距。
+- **格式与压缩**：转换 JPG / PNG，并尝试按所选目标控制文件大小。
+- **电子照与分享**：管理已保存的电子照，并通过微信分享小程序入口。
 
-本项目后端采用 **[HivisionIDPhotos](https://github.com/Zeyi-Lin/HivisionIDPhotos)** 开源项目，这是一个轻量级的 AI 证件照制作算法，具有以下特点：
+### 会员与支付
 
-- 🚀 轻量级部署，支持 CPU 推理
-- 🎯 高精度人像分割
-- 📐 标准证件照尺寸裁剪
-- 🎨 智能背景色替换
-- 📦 支持 Docker 一键部署
+- 普通用户按页面提示观看激励视频广告后保存；有效会员保存时免广告。
+- 会员采用单次购买，不自动续费；有效期按自然月计算，未到期续费时长叠加。
+- 首次初始化的套餐示例为 **1 个月 ¥12、3 个月 ¥24、12 个月 ¥68**。套餐可在后台调整，实际价格和上架状态以购买页面为准。
+- 接入微信虚拟支付，提供订单查询、订单详情和退款申请入口；支付能力需要完成微信平台配置。iPhone 支付需满足微信及 Apple 的相关条件。
 
-> 感谢 [@Zeyi-Lin](https://github.com/Zeyi-Lin) 提供的优秀开源算法！
+### 内容安全与服务状态
 
-## 📁 项目结构
+- 内容安全默认开启：照片进入处理流程前调用微信图片内容安全接口，文字水印在渲染前进行文本检测。检测不通过或服务不可用时会停止相应处理。
+- **我的 → 服务状态**提供图片、文字和异步媒体检测演示。异步媒体接口先返回受理结果，最终判定通过微信消息推送回调接收。
+- 小程序和管理后台可查看照片服务、会员服务等运行状态。状态页展示基础配置与近期异常，并不代表第三方支付或每次图片处理一定成功。
 
-```
-src/
-├── api/                    # API 接口定义
-│   ├── matting.ts         # 人像抠图接口
-│   ├── photo.ts           # 证件照生成接口
-│   ├── photo-enhanced.ts  # 增强功能接口
-│   └── watermark.ts       # 水印处理接口
-├── assets/                # 静态资源（样式）
-├── components/            # 公共组件
-│   ├── LoadingOverlay.vue # 加载动画组件
-│   └── ShareButton.vue    # 分享按钮组件
-├── config.ts              # 项目配置（API地址、广告ID等）
-├── enums/                 # 枚举定义
-├── model/                 # 数据模型/类型定义
-│   ├── Colors.ts          # 背景色配置
-│   ├── Interfaces.ts      # 接口定义
-│   ├── PhotoSize.ts       # 证件照尺寸
-│   └── size.json          # 尺寸规格数据
-├── pages/                 # 页面文件
-│   ├── index/             # 首页（尺寸选择）
-│   ├── photo/             # 证件照（拍照、编辑）
-│   ├── electronic/        # 电子照管理
-│   ├── matting/           # 人像抠图
-│   ├── watermark/         # 图片水印
-│   ├── mine/              # 个人中心
-│   ├── user-agreement/    # 用户协议
-│   └── privacy-policy/    # 隐私政策
-├── static/                # 静态资源（图片）
-├── store/                 # Vuex 状态管理
-└── utils/                 # 工具函数
-    ├── electronic-photo.ts # 电子照管理
-    ├── request.ts         # 网络请求封装
-    └── storage.ts         # 本地存储管理
-```
+## 管理后台
 
-## 🚀 快速开始
+管理后台用于日常运营和问题处理，包含：
+
+| 模块 | 主要能力 |
+| --- | --- |
+| 运营概览与服务监控 | 查看用户、会员、订单及服务状态，检查本机服务与公网连接 |
+| 用户与会员 | 通过会员编号查找用户，查看权益流水，按自然月延长或调整到期时间 |
+| 会员套餐 | 新建、编辑、排序、归档套餐；核对微信商品后上架 |
+| 订单与退款 | 查询订单和退款申请，按支付渠道处理退款并记录核对结果 |
+| 审计记录 | 查看后台重要操作记录 |
+
+后台可对符合条件的普通虚拟支付订单发起退款；Apple 内购退款按 Apple 的流程处理。经核实全额退款后，系统会回收该订单尚未使用的会员权益；部分退款及无法安全计算的情况需要人工核对。退款流程与部署注意事项见 [后端说明](backend/README.md#定位用户与处理退款申请)。
+
+默认本地后台地址为 `http://127.0.0.1:8091/`。如需公网访问，应配置 Cloudflare Tunnel、Cloudflare Access 和后台账号密码；当前部署与配置说明见 [后台公网访问](backend/README.md#后台公网访问)。
+
+## 快速开始
 
 ### 环境要求
 
-- Node.js >= 14.0.0
-- yarn 或 npm
-- 微信开发者工具
-- HivisionIDPhotos 后端服务
+- Node.js 和 npm 或 Yarn
+- Python 3.10–3.13
+- 微信开发者工具及可用的小程序 AppID
+- 微信小程序服务端凭据；如需会员支付，还需完成微信虚拟支付、商品和消息推送配置
 
-### 1. 克隆项目
+### 1. 获取代码并安装前端依赖
 
 ```bash
-git clone https://github.com/yang199462/id-photo.git
+git clone https://github.com/qiqichaoiwan/id-photo.git
 cd id-photo
-```
-
-### 2. 安装依赖
-
-```bash
-# 推荐使用 yarn
 yarn install
-
-# 或使用 npm
-npm install
 ```
 
-### 3. 配置项目
+也可使用 `npm install` 安装前端依赖。
 
-修改 `src/config.ts` 中的配置：
-
-```typescript
-// API 服务地址（你的 HivisionIDPhotos 后端地址）
-const baseApi: { [key: string]: EnvironmentConfig } = {
-  development: {
-    host: "https://your-api-domain.com",  // 修改为你的API地址
-  },
-  production: {
-    host: "https://your-api-domain.com",
-  },
-};
-
-// 微信激励广告配置（可选）
-export const adConfig = {
-  rewardedVideoAdUnitId: 'your-ad-unit-id'  // 你的广告单元ID
-};
-```
-
-修改 `src/manifest.json` 中的微信小程序 AppID。
-
-### 4. 启动开发
+### 2. 配置并启动后端
 
 ```bash
-# 微信小程序开发
-yarn dev:mp-weixin
-
-# H5 开发
-yarn serve
-```
-
-使用微信开发者工具打开 `dist/dev/mp-weixin` 目录即可预览。
-
-### 5. 构建发布
-
-```bash
-# 构建微信小程序
-yarn build:mp-weixin
-
-# 构建 H5
-yarn build:h5
-```
-
-## 📦 部署指南
-
-### 后端部署（HivisionIDPhotos）
-
-本项目的微信登录、会员、支付回调和管理后台已与 HivisionIDPhotos 源码一起整合到 [`backend/`](backend/)。下载仓库后运行 `cd backend && ./bootstrap.sh && ./configure.sh && ./start-all.sh` 即可准备和启动完整后端；模型权重会在 bootstrap 阶段按固定地址和 SHA-256 自动下载。详细说明见 [backend/README.md](backend/README.md)。
-
-推荐先使用仓库自带的后端启动器：
-
-```bash
-# 准备 Python 依赖和 HivisionIDPhotos 模型
 cd backend
 ./bootstrap.sh
-
-# 交互式写入本机微信密钥、支付配置和后台密码
 ./configure.sh
-
-# 启动图片 API、支付消息接收和后台
 ./start-all.sh
 ```
 
-完整部署文档见：[backend/README.md](backend/README.md)。`backend/hivision-core` 保留了 HivisionIDPhotos 的 Gradio 界面和原始 API 源码；本项目实际使用的带鉴权、会员和支付能力的入口是 `backend/hivision-overlay/deploy_api.py`。上游 Docker 镜像只包含基础 HivisionIDPhotos，不能替代本项目后端。
+`bootstrap.sh` 会创建 Python 环境、安装依赖并下载模型权重。`configure.sh` 交互式配置微信和后台所需的本机密钥。请不要将密钥、数据库或本地配置提交到仓库。`start-all.sh` 会占用当前终端；可另开终端继续配置前端，按 `Ctrl-C` 停止本次启动的服务。
 
-### 前端部署
+启动后默认提供图片 API（`127.0.0.1:8080`）、管理后台（`127.0.0.1:8091`）和微信消息推送服务（`127.0.0.1:8092`）。如需使用 HivisionIDPhotos 原有的 Gradio 界面，可运行 `./start-gradio.sh`。详细配置、支付沙箱和模型说明见 [backend/README.md](backend/README.md)。
 
-1. 执行 `yarn build:mp-weixin` 构建项目
-2. 使用微信开发者工具打开 `dist/build/mp-weixin` 目录
-3. 点击"上传"提交到微信公众平台
-4. 在微信公众平台提交审核
+### 3. 配置小程序
 
-## 🔧 API 接口说明
+从仓库根目录复制配置模板：
 
-项目使用的 HivisionIDPhotos API 接口：
-
-| 接口                        | 方法   | 说明           |
-| ------------------------- | ---- | ------------ |
-| `/idphoto`                | POST | 生成证件照（抠图+裁剪） |
-| `/human_matting`          | POST | 人像抠图（仅抠图）    |
-| `/add_background`         | POST | 添加/更换背景色     |
-| `/generate_layout_photos` | POST | 生成六寸排版照      |
-| `/set_kb`                 | POST | 设置图片文件大小     |
-
-详细接口文档：[HivisionIDPhotos API 文档](https://github.com/Zeyi-Lin/HivisionIDPhotos/blob/master/docs/api_CN.md)
-
-## ❓ 常见问题
-
-<details>
-<summary><b>Q: 如何修改证件照规格？</b></summary>
-
-编辑 `src/model/size.json` 文件，按照现有格式添加新的规格：
-
-```json
-{
-  "name": "规格名称",
-  "pxWidth": 295,
-  "pxHeight": 413,
-  "mmWidth": 25,
-  "mmHeight": 35
-}
+```bash
+cp .env.example .env.local
 ```
 
-</details>
+在 `.env.local` 中配置自己的服务域名和激励视频广告位 ID，例如：
 
-<details>
-<summary><b>Q: 如何添加新的背景色？</b></summary>
-
-编辑 `src/pages/photo/edit.vue` 中的 `colorConfig` 数组：
-
-```typescript
-const colorConfig = [
-  { name: '颜色名称', color: '#HEX颜色值' },
-  // ...
-]
+```dotenv
+VUE_APP_API_BASE_URL=https://your-api-domain.example
+VUE_APP_REWARDED_VIDEO_AD_UNIT_ID=adunit-your-id
 ```
 
-</details>
+也可分别设置 `VUE_APP_API_DEVELOPMENT`、`VUE_APP_API_TRIAL`、`VUE_APP_API_RELEASE`。未设置时，项目使用 `src/config.ts` 中的默认域名。将 `src/manifest.json` 的 `mp-weixin.appid` 改为自己的 AppID，并在微信公众平台配置对应的合法服务器域名。
+
+### 4. 开发与构建
+
+```bash
+# 开发版：使用微信开发者工具打开 dist/dev/mp-weixin
+yarn dev:mp-weixin
+
+# 发布构建：使用微信开发者工具打开 dist/build/mp-weixin
+yarn build:mp-weixin
+```
+
+在微信开发者工具中导入对应目录后，可预览、上传代码并在微信公众平台提交审核。相机、广告、登录和支付能力需结合真实设备、微信平台配置及网络环境使用。
+
+## 项目结构
+
+```text
+id-photo/
+├── src/
+│   ├── api/                   # 照片、会员与内容安全接口
+│   ├── components/            # 相机、加载状态等公共组件
+│   ├── pages/                 # 首页、图片工具、会员、服务状态等页面
+│   ├── model/                 # 证件照规格、颜色和数据类型
+│   ├── static/                # 图标与示例图片
+│   ├── utils/                 # 请求、广告、图片和本地存储工具
+│   └── config.ts              # 服务地址与广告位配置
+├── backend/
+│   ├── hivision-core/         # HivisionIDPhotos 上游源码
+│   ├── hivision-overlay/      # 图片 API、微信登录、会员、支付及后台
+│   └── README.md              # 后端配置、运行与运维说明
+├── docs/                      # 设计、界面截图与实施文档
+├── scripts/                   # 构建辅助与本机服务恢复脚本
+├── .env.example               # 前端配置模板
+└── README.md
+```
+
+## 常用接口
+
+以下接口由本项目后端提供；图片与会员接口按部署配置要求微信登录鉴权。接口详情请参考 [后端说明](backend/README.md) 和 `backend/hivision-overlay/` 中的实现。
+
+| 接口 | 用途 |
+| --- | --- |
+| `POST /auth/wechat` | 微信登录 |
+| `POST /idphoto` | 生成证件照 |
+| `POST /human_matting` | 人像抠图 |
+| `POST /add_background` | 图片背景处理 |
+| `POST /generate_layout_photos` | 生成打印排版照 |
+| `POST /watermark` | 添加文字水印 |
+| `POST /convert_image` | 图片格式转换与压缩 |
+| `GET /service-status` | 查询服务状态 |
+| `POST /content-security/image` | 图片内容安全检测演示 |
+| `POST /content-security/text` | 文本内容安全检测演示 |
+| `POST /content-security/media` | 异步媒体内容安全检测演示 |
+
+## 许可证与致谢
+
+本项目使用 [MIT License](LICENSE)。仓库包含的 HivisionIDPhotos 上游代码遵循其 [Apache-2.0 许可证](backend/LICENSE-HIVISION-APACHE-2.0)；上游模型及其他依赖的使用条件请以各自许可为准。
+
+感谢 [HivisionIDPhotos](https://github.com/Zeyi-Lin/HivisionIDPhotos)、[uni-app](https://uniapp.dcloud.io/)、[Vue.js](https://vuejs.org/) 和 [uView UI](https://www.uviewui.com/) 等开源项目。
 
 <details>
-<summary><b>Q: 如何关闭广告功能？</b></summary>
+<summary>关注与支持</summary>
 
-在相关页面中，将 `showRewardedVideoAd()` 方法的返回值改为直接返回 `true`，或删除广告相关代码。
-
-</details>
-
-<details>
-<summary><b>Q: 编译报错 "multiple default exports"？</b></summary>
-
-这是 IDE 的误报（vue-property-decorator 的问题），不影响实际编译和运行。
-
-</details>
-
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'feat: 添加某个功能'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
-### 提交规范
-
-- `feat:` 新功能
-- `fix:` 修复问题
-- `docs:` 文档更新
-- `style:` 代码格式调整
-- `refactor:` 代码重构
-- `chore:` 构建/工具变动
-
-## 📄 开源协议
-
-本项目采用 [MIT](LICENSE) 开源协议。
-
-## 💖 支持项目
-
-如果这个项目对你有帮助，欢迎：
-
-- ⭐ 给项目点个 Star
-- 🐛 提交 Issue 反馈问题
-- 🔀 提交 PR 贡献代码
-- 📢 分享给更多人
-
----
-
-### 🔗 关注与支持
-
-<table width="100%">
+<table>
   <tr>
-    <td width="33%" align="center"><b>关注公众号</b></td>
-    <td width="33%" align="center"><b>扫码支持(支付宝)</b></td>
-    <td width="33%" align="center"><b>扫码支持(微信)</b></td>
+    <td align="center"><b>关注公众号</b></td>
+    <td align="center"><b>支付宝支持</b></td>
+    <td align="center"><b>微信支持</b></td>
   </tr>
   <tr>
-    <td width="33%" align="center"><img src="docs/qrcode/wechat-official.jpg" width="150"/></td>
-    <td width="33%" align="center"><img src="docs/qrcode/zhifu.jpg" width="150"/></td>
-    <td width="33%" align="center"><img src="docs/qrcode/wx.jpg" width="150"/></td>
-  </tr>
-  <tr>
-    <td width="33%" align="center">获取最新动态</td>
-    <td width="33%" align="center">请作者喝杯咖啡 ☕</td>
-    <td width="33%" align="center">请作者喝杯咖啡 ☕</td>
+    <td><img src="docs/qrcode/wechat-official.jpg" alt="微信公众号二维码" width="150" /></td>
+    <td><img src="docs/qrcode/zhifu.jpg" alt="支付宝支持二维码" width="150" /></td>
+    <td><img src="docs/qrcode/wx.jpg" alt="微信支持二维码" width="150" /></td>
   </tr>
 </table>
 
----
-
-## 🙏 致谢
-
-- [HivisionIDPhotos](https://github.com/Zeyi-Lin/HivisionIDPhotos) - 优秀的 AI 证件照生成算法
-- [UniApp](https://uniapp.dcloud.io/) - 跨平台开发框架
-- [uView UI](https://www.uviewui.com/) - 优秀的 UI 组件库
-- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
-
----
-
-<div align="center">
-
-**如果觉得项目不错，请给个 ⭐ Star 支持一下！**
-
-Made with ❤️ by [小七快照拍](https://github.com/yang199462/id-photo.git)
-
-
-<img src="docs/qrcode/qc.jpg" width="150" align="center" />
-
+</details>
